@@ -8,7 +8,7 @@ GORA (Guild of Robot’s Armies) - двумерный многопользова
 
 ## Стек технологий:
 > - Python 3.4
-> - Pygame (клиент)
+> - Pygame (клиент), Pickle (передача данных), Twisted (сеть)
 > - Django (веб часть)
 > - PyMySQL
 > - PyLint (оценка качества кода)
