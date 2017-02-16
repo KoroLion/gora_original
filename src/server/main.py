@@ -6,7 +6,6 @@ import pickle
 import threading
 import time
 from classes.helper_types import Position
-#https://habrahabr.ru/post/123748/
 
 PORT = 22000
 
@@ -18,7 +17,7 @@ class Dot:
 player1 = Dot(Position(1, 1))
 
 
-class MyTCPHandler(socketserver.BaseRequestHandler):
+class TCPHandler(socketserver.BaseRequestHandler):
     """
     The request handler class for our server.
 
@@ -37,7 +36,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             self.request.sendall(pickle.dumps(player1, 2))
 
 
-server = socketserver.ThreadingTCPServer(('', PORT), MyTCPHandler)
+server = socketserver.ThreadingTCPServer(('', PORT), TCPHandler)
 ip, port = server.server_address
 server_thread = threading.Thread(target=server.serve_forever)
 server_thread.daemon = True
