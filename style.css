@@ -1,0 +1,114 @@
+@font-face {
+    font-family: 'HEAD';
+    src: url("//static.parastorage.com/services/third-party/fonts/user-site-fonts/fonts/29c66f1e-5243-4f34-8a19-47405f72954c.woff2") format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.head span{
+    font-family: 'HEAD', sans-serif;
+    text-align: center;
+    width: 100%;
+    font-size: 100px;
+    color: white;
+    line-height: 115px;
+    background-color: black;
+    margin-right: 20px;
+    margin-left: 20px;
+}
+
+#video_bg {
+    /* Делаем так, чтобы видеофон занимал фиксированное положение. */
+    position: fixed;
+    top: 0;
+    left: 0;
+    /* Располагаем наш фон под всем содержимым на странице.
+    Для этого используем отрицательный z-index. */
+    z-index: -1000;
+    /* Растягиваем видео так, чтобы не было видно черных полос и
+    чтобы независимо от разрешения экрана видеофон занимал все рабочее пространство. */
+    width: 100%;
+}
+
+.head{
+    font: normal normal normal 50px/1.4em 'arial black',sans-serif;
+    text-align:center;
+    margin:0 auto;
+    max-width: 700px;
+    padding-top: 90px;
+    background-size: cover;
+    margin-bottom: 100px;
+}
+
+body{
+    background-color: black;
+}
+
+.bar{
+    height: 62px;
+    padding-left: 25%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.bar ul {
+    list-style: none;
+    margin: 0;
+    padding-left: 0;
+    margin-top: 10px;
+    background: rgb(0, 46, 93);
+    height: 50px;
+}
+.bar a {
+    text-decoration: none;
+    background: rgb(0, 46, 93);
+    color: white;
+    padding:0px 15px;
+    font-family: arial;
+    line-height:50px;
+    display: block;
+    border-right: 1px solid rgb(93, 46, 0);
+
+    -moz-transition: all 0.3s 0.01s ease; /*лавный переход*/
+    -o-transition: all 0.3s 0.01s ease;
+    -webkit-transition: all 0.3s 0.01s ease;
+}
+.bar a:hover {
+    background:#D43737;
+}
+
+.bar li {
+    float:left;
+}
+
+.bar img{
+    height: 50px;
+    margin: -20px;
+}
+
+.top_line{
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 62px;
+    background-color: rgb(0, 46, 93);
+}
+
+.logo{
+    left: 200px;
+    width: 127px;
+    position: absolute;
+    top: 10px;
+}
+
+.logo a:hover{
+    background: rgb(0, 46, 93);
+}
+
+.logo a{
+    border-right: 0px;
+}
+
