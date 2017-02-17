@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 import socket
-import pickle
 import threading
+from time import sleep
+import pickle
+import pygame
+
 from classes.helper_types import Position, Size
 from classes.game_object import GameObject
 from classes.core import Core
 from classes.constants import *
 from classes.resources import Resources
 from classes.game import Game
-from time import sleep
-import pygame
 
 PORT = 22000
 
