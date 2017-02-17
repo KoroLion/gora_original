@@ -13,10 +13,12 @@ GO_LEFT = 1
 GO_RIGHT = 2
 GO_TOP = 3
 GO_BOTTOM = 4
+
 GET_DATA = 5
+DISCONNECT = 6
 
 
-class Dot:
+class PlayerInfo:
     """
     Класс точки (alpha 0.1)
     """
@@ -29,7 +31,7 @@ class Dot:
         self.position.x += self.speed.x
         self.position.y += self.speed.y
 
-player1 = Dot(Position(1, 1), Position(0, 0))
+player1 = PlayerInfo(Position(1, 1), Position(0, 0))
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
@@ -51,7 +53,16 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
         if data == GET_DATA:
             self.request.sendall(pickle.dumps(player1, 2))
-        elif data == GO_TOP:
+
+
+class UDPHandler(socketserver.DatagramRequestHandler):
+    def handle(self):
+        # self.request is the TCP socket connected to the client
+        data = pickle.loads(self.request[0])
+        cur_thread = threading.current_thread()
+        # print("{} wrote: {}".format(self.client_address[0], data))
+
+        if data == GO_TOP:
             player1.speed.x = 0
             player1.speed.y = -player1.speed_amount
         elif data == GO_BOTTOM:
@@ -63,13 +74,22 @@ class TCPHandler(socketserver.BaseRequestHandler):
         elif data == GO_RIGHT:
             player1.speed.x = player1.speed_amount
             player1.speed.y = 0
+        elif data == DISCONNECT:
+            player1.position = Position(1, 1)
+            player1.speed = Position(0, 0)
 
 
 server = socketserver.ThreadingTCPServer(('', PORT), TCPHandler)
+
 ip, port = server.server_address
 server_thread = threading.Thread(target=server.serve_forever)
 server_thread.daemon = True
 server_thread.start()
+
+server_udp = socketserver.ThreadingUDPServer(('', PORT), UDPHandler)
+server_udp_thread = threading.Thread(target=server_udp.serve_forever)
+server_udp_thread.daemon = True
+server_udp_thread.start()
 
 
 def main():

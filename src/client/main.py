@@ -19,13 +19,39 @@ GO_RIGHT = 2
 GO_TOP = 3
 GO_BOTTOM = 4
 GET_DATA = 5
+DISCONNECT = 6
 
 
-class Dot(object):
+class CoreData(object):
+    command = 0
+
+
+class PlayerInfo(object):
     command = 0
 
     def __init__(self, position):
         self.position = position
+
+
+class LNet(object):
+    def __init__(self, ip, port, timeout):
+        self.ip = ip
+        self.port = port
+        self.timeout = timeout
+
+    def tcp_send(self, data):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=socket.IPPROTO_TCP)  # Интернет, потокориентированный, TCP
+        sock.connect((self.ip, self.port))
+        sock.sendall(data)
+        data = sock.recv(1024)
+        sock.close()
+        return data
+
+    def udp_send(self, data):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # IPv4, датаграммный, UDP
+        sock.connect((self.ip, self.port))
+        sock.sendall(data)
+        sock.close()
 
 pygame.init()
 
@@ -36,28 +62,22 @@ form = Core("GORA pre-alpha 0.1", Size(FORM_WIDTH, FORM_HEIGHT),
 game = Game(res)
 form.add_object(game)
 
+net = LNet('localhost', PORT, 0.1)
+
 
 def get_data():
-    while True:
+    while not form.terminated:
         # threading.Lock().acquire() ?
-        if Dot.command != 0:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect(('localhost', PORT))
-            sock.sendall(pickle.dumps(Dot.command, 2))
-            sock.close()
-            Dot.command = 0
+        if CoreData.command != 0:
+            net.udp_send(pickle.dumps(CoreData.command, 2))
+            CoreData.command = 0
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(('localhost', PORT))
-        sock.sendall(pickle.dumps(GET_DATA, 2))
-
-        data = sock.recv(1024)
+        data = net.tcp_send(pickle.dumps(GET_DATA, 2))
         if data:
             data = pickle.loads(data)
             game.player.position = data.position
             # print('{}:{}'.format(data.position.x, data.position.y))
 
-        sock.close()
         # threading.Lock().release() ?
         sleep(0.05)
 
@@ -74,17 +94,19 @@ def main():
                 form.terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
-                    Dot.command = GO_TOP
+                    CoreData.command = GO_TOP
                 if event.key == pygame.K_s:
-                    Dot.command = GO_BOTTOM
+                    CoreData.command = GO_BOTTOM
                 if event.key == pygame.K_a:
-                    Dot.command = GO_LEFT
+                    CoreData.command = GO_LEFT
                 if event.key == pygame.K_d:
-                    Dot.command = GO_RIGHT
+                    CoreData.command = GO_RIGHT
 
         res.update()
         game.update()
         form.update()
+    net.udp_send(pickle.dumps(DISCONNECT, 2))
+
 
 if __name__ == "__main__":
     main()
