@@ -8,15 +8,27 @@ from classes.helper_types import Position
 
 PORT = 22000
 
+GO_LEFT = 1
+GO_RIGHT = 2
+GO_TOP = 3
+GO_BOTTOM = 4
+GET_DATA = 5
+
 
 class Dot:
     """
     Класс точки (alpha 0.1)
     """
-    def __init__(self, position):
+    def __init__(self, position, speed):
         self.position = position
+        self.speed = speed
+        self.speed_amount = 3
 
-player1 = Dot(Position(1, 1))
+    def update(self):
+        self.position.x += self.speed.x
+        self.position.y += self.speed.y
+
+player1 = Dot(Position(1, 1), Position(0, 0))
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
@@ -34,10 +46,22 @@ class TCPHandler(socketserver.BaseRequestHandler):
         # self.request is the TCP socket connected to the client
         data = pickle.loads(self.request.recv(1024))
         cur_thread = threading.current_thread()
-        print("{} wrote: {}".format(self.client_address[0], data))
-        # just send back the same data, but upper-cased
-        if data == 'get_data':
+        # print("{} wrote: {}".format(self.client_address[0], data))
+
+        if data == GET_DATA:
             self.request.sendall(pickle.dumps(player1, 2))
+        elif data == GO_TOP:
+            player1.speed.x = 0
+            player1.speed.y = -player1.speed_amount
+        elif data == GO_BOTTOM:
+            player1.speed.x = 0
+            player1.speed.y = player1.speed_amount
+        elif data == GO_LEFT:
+            player1.speed.x = -player1.speed_amount
+            player1.speed.y = 0
+        elif data == GO_RIGHT:
+            player1.speed.x = player1.speed_amount
+            player1.speed.y = 0
 
 
 server = socketserver.ThreadingTCPServer(('', PORT), TCPHandler)
@@ -49,10 +73,8 @@ server_thread.start()
 
 def main():
     while True:
-        time.sleep(1)
-        player1.position.x += 1
-        player1.position.y += 2
-        print(player1.position.x)
+        time.sleep(0.05)
+        player1.update()
 
     server.shutdown()
     server.server_close()
