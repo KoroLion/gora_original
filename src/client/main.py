@@ -5,12 +5,12 @@ from time import sleep
 import pickle
 import pygame
 
-from classes.helper_types import Position, Size
-from classes.game_object import GameObject
-from classes.core import Core
 from classes.constants import *
+from classes.helper_types import Position, Size
 from classes.resources import Resources
+from classes.core import Core
 from classes.game import Game
+from classes.game_object import GameObject
 
 PORT = 22000
 

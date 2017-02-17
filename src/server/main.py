@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import socketserver
-import pickle
 import threading
-import time
+from time import sleep
+import pickle
+
 from classes.helper_types import Position
 
 PORT = 22000
@@ -73,7 +74,7 @@ server_thread.start()
 
 def main():
     while True:
-        time.sleep(0.05)
+        sleep(0.05)
         player1.update()
 
     server.shutdown()
