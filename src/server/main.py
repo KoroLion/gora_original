@@ -11,6 +11,9 @@ PORT = 22000
 
 
 class Dot:
+    """
+    Класс точки (alpha 0.1)
+    """
     def __init__(self, position):
         self.position = position
 
@@ -19,6 +22,8 @@ player1 = Dot(Position(1, 1))
 
 class TCPHandler(socketserver.BaseRequestHandler):
     """
+    Запускаем
+
     The request handler class for our server.
 
     It is instantiated once per connection to the server, and must
