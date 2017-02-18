@@ -6,13 +6,13 @@ import hashlib
 import pickle
 import pygame
 
-from client.classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
-from client.classes.helper_types import Size
-from client.classes.resources import Resources
-from client.classes.core import Core
-from client.classes.game import Game
+from classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
+from classes.helper_types import Size
+from classes.resources import Resources
+from classes.core import Core
+from classes.game import Game
 
-IP = 'localhost'
+IP = '195.170.57.185'
 PORT = 22000
 LOGIN = 'KoroLion'
 
