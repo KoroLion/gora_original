@@ -5,21 +5,23 @@ from time import sleep
 import pickle
 import pygame
 
-from classes.constants import *
-from classes.helper_types import Position, Size
-from classes.resources import Resources
-from classes.core import Core
-from classes.game import Game
-from classes.game_object import GameObject
+from client.classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
+from client.classes.helper_types import Size
+from client.classes.resources import Resources
+from client.classes.core import Core
+from client.classes.game import Game
 
 PORT = 22000
+TOKEN = 'korolion'
 
 GO_LEFT = 1
 GO_RIGHT = 2
 GO_TOP = 3
 GO_BOTTOM = 4
-GET_DATA = 5
-DISCONNECT = 6
+
+CONNECT = 5
+GET_DATA = 6
+DISCONNECT = 7
 
 
 class CoreData(object):
@@ -40,7 +42,8 @@ class LNet(object):
         self.timeout = timeout
 
     def tcp_send(self, data):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=socket.IPPROTO_TCP)  # Интернет, потокориентированный, TCP
+        # IPv4, потокориентированный, TCP
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=socket.IPPROTO_TCP)
         sock.connect((self.ip, self.port))
         sock.sendall(data)
         data = sock.recv(1024)
@@ -48,7 +51,8 @@ class LNet(object):
         return data
 
     def udp_send(self, data):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # IPv4, датаграммный, UDP
+        # IPv4, датаграммный, UDP
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.connect((self.ip, self.port))
         sock.sendall(data)
         sock.close()
@@ -57,16 +61,16 @@ pygame.init()
 
 res = Resources(sounds_volume=0.5)
 
-form = Core("GORA pre-alpha 0.1", Size(FORM_WIDTH, FORM_HEIGHT),
-            res.background, FPS * 1)
+main_form = Core("GORA pre-alpha 0.1", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
 game = Game(res)
-form.add_object(game)
+main_form.add_object(game)
 
 net = LNet('localhost', PORT, 0.1)
 
 
 def get_data():
-    while not form.terminated:
+    net.tcp_send(pickle.dumps(str(CONNECT) + ' ' + TOKEN, 2))
+    while not main_form.terminated:
         # threading.Lock().acquire() ?
         if CoreData.command != 0:
             net.udp_send(pickle.dumps(CoreData.command, 2))
@@ -88,10 +92,10 @@ get_data_thread.start()
 
 
 def main():
-    while not form.terminated:
+    while not main_form.terminated:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                form.terminate()
+                main_form.terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
                     CoreData.command = GO_TOP
@@ -104,7 +108,7 @@ def main():
 
         res.update()
         game.update()
-        form.update()
+        main_form.update()
     net.udp_send(pickle.dumps(DISCONNECT, 2))
 
 

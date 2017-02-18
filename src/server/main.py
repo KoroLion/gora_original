@@ -14,8 +14,9 @@ GO_RIGHT = 2
 GO_TOP = 3
 GO_BOTTOM = 4
 
-GET_DATA = 5
-DISCONNECT = 6
+CONNECT = 5
+GET_DATA = 6
+DISCONNECT = 7
 
 
 class PlayerInfo:
@@ -30,6 +31,8 @@ class PlayerInfo:
     def update(self):
         self.position.x += self.speed.x
         self.position.y += self.speed.y
+
+players = []
 
 player1 = PlayerInfo(Position(1, 1), Position(0, 0))
 
@@ -47,12 +50,16 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        data = pickle.loads(self.request.recv(1024))
+        data = str(pickle.loads(self.request.recv(1024)))
+        data = data.split()
+        data[0] = int(data[0])
         cur_thread = threading.current_thread()
         # print("{} wrote: {}".format(self.client_address[0], data))
 
-        if data == GET_DATA:
+        if data[0] == GET_DATA:
             self.request.sendall(pickle.dumps(player1, 2))
+        elif data[0] == CONNECT:
+            print(data[1] + ' connected!')
 
 
 class UDPHandler(socketserver.DatagramRequestHandler):
