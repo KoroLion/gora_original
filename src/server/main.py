@@ -21,7 +21,7 @@ DISCONNECT = 7
 
 class PlayerInfo:
     """
-    Класс точки (alpha 0.1)
+    Класс информации об игроке, хранящейся на сервере
     """
     def __init__(self, position, speed):
         self.position = position
@@ -66,24 +66,27 @@ class UDPHandler(socketserver.DatagramRequestHandler):
     def handle(self):
         # self.request is the TCP socket connected to the client
         data = pickle.loads(self.request[0])
+        data = data.split()
+        data[0] = int(data[0])
         cur_thread = threading.current_thread()
         # print("{} wrote: {}".format(self.client_address[0], data))
 
-        if data == GO_TOP:
+        if data[0] == GO_TOP:
             player1.speed.x = 0
             player1.speed.y = -player1.speed_amount
-        elif data == GO_BOTTOM:
+        elif data[0] == GO_BOTTOM:
             player1.speed.x = 0
             player1.speed.y = player1.speed_amount
-        elif data == GO_LEFT:
+        elif data[0] == GO_LEFT:
             player1.speed.x = -player1.speed_amount
             player1.speed.y = 0
-        elif data == GO_RIGHT:
+        elif data[0] == GO_RIGHT:
             player1.speed.x = player1.speed_amount
             player1.speed.y = 0
-        elif data == DISCONNECT:
+        elif data[0] == DISCONNECT:
             player1.position = Position(1, 1)
             player1.speed = Position(0, 0)
+            print()
 
 
 server = socketserver.ThreadingTCPServer(('', PORT), TCPHandler)

@@ -25,17 +25,30 @@ DISCONNECT = 7
 
 
 class CoreData(object):
+    """
+    Храним данные для взаимодействия потоков
+    """
     command = 0
 
 
 class PlayerInfo(object):
-    command = 0
-
-    def __init__(self, position):
+    """
+    Класс информации об игроке, хранящейся на сервере
+    """
+    def __init__(self, position, speed):
         self.position = position
+        self.speed = speed
+        self.speed_amount = 3
+
+    def update(self):
+        self.position.x += self.speed.x
+        self.position.y += self.speed.y
 
 
 class LNet(object):
+    """
+    Класс для простой работы с сетью
+    """
     def __init__(self, ip, port, timeout):
         self.ip = ip
         self.port = port
@@ -69,6 +82,9 @@ net = LNet('localhost', PORT, 0.1)
 
 
 def get_data():
+    """
+    Поток получения информации о состоянии игры с сервера
+    """
     net.tcp_send(pickle.dumps(str(CONNECT) + ' ' + TOKEN, 2))
     while not main_form.terminated:
         # threading.Lock().acquire() ?
@@ -92,6 +108,9 @@ get_data_thread.start()
 
 
 def main():
+    """
+    Поток отображения клиента
+    """
     while not main_form.terminated:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -109,7 +128,7 @@ def main():
         res.update()
         game.update()
         main_form.update()
-    net.udp_send(pickle.dumps(DISCONNECT, 2))
+    net.udp_send(pickle.dumps(str(DISCONNECT) + ' ' + TOKEN, 2))
 
 
 if __name__ == "__main__":
