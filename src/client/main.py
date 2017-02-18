@@ -12,6 +12,8 @@ from classes.resources import Resources
 from classes.core import Core
 from classes.game import Game
 
+PACKET_SIZE = 512
+
 IP = '195.170.57.185'
 PORT = 22000
 LOGIN = 'KoroLion'
@@ -64,7 +66,7 @@ class LNet(object):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=socket.IPPROTO_TCP)
         sock.connect((self.ip, self.port))
         sock.sendall(data)
-        data = sock.recv(1024)
+        data = sock.recv(PACKET_SIZE)
         sock.close()
         return data
 
@@ -91,7 +93,8 @@ def get_data():
     Поток получения информации о состоянии игры с сервера
     """
     try:
-        net.tcp_send(pickle.dumps(str(CONNECT) + ' ' + TOKEN + ' ' + LOGIN, 2))
+        data = str(CONNECT) + ' ' + TOKEN + ' ' + LOGIN
+        net.tcp_send(data.encode())
         CoreData.connected = True
     except ConnectionRefusedError:
         CoreData.connected = False
@@ -100,10 +103,11 @@ def get_data():
     while not main_form.terminated and CoreData.connected:
         # threading.Lock().acquire() ?
         if CoreData.command != 0:
-            net.udp_send(pickle.dumps(str(CoreData.command) + ' ' + TOKEN, 2))
+            data = str(CoreData.command) + ' ' + TOKEN
+            net.udp_send(data.encode())
             CoreData.command = 0
 
-        data = net.tcp_send(pickle.dumps(GET_DATA, 2))
+        data = net.tcp_send(str(GET_DATA).encode())
         if data:
             players = pickle.loads(data)
             game.player1.visible = False
@@ -159,7 +163,8 @@ def main():
         main_form.update()
 
     if CoreData.connected:
-        net.udp_send(pickle.dumps(str(DISCONNECT) + ' ' + TOKEN, 2))
+        data = str(DISCONNECT) + ' ' + TOKEN
+        net.udp_send(data.encode())
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ import pickle
 from classes.helper_types import Position
 
 PORT = 22000
+PACKET_SIZE = 512
 
 GO_LEFT = 1
 GO_RIGHT = 2
@@ -44,9 +45,10 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        data = self.request.recv(1024)
+        data = self.request.recv(PACKET_SIZE)
+
         if data:
-            data = str(pickle.loads(data))
+            data = data.decode()
             data = data.split()
             data[0] = int(data[0])
             cur_thread = threading.current_thread()
@@ -65,7 +67,7 @@ class UDPHandler(socketserver.DatagramRequestHandler):
         # self.request is the TCP socket connected to the client
         data = self.request[0]
         if data:
-            data = str(pickle.loads(self.request[0]))
+            data = self.request[0].decode()
             data = data.split()
             data[0] = int(data[0])
             token = data[1]
