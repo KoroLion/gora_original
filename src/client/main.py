@@ -11,8 +11,8 @@ from client.classes.helper_types import Size
 from client.classes.resources import Resources
 from client.classes.core import Core
 from client.classes.game import Game
-from client.classes.game_object import GameObject
 
+IP = 'localhost'
 PORT = 22000
 LOGIN = 'KoroLion'
 
@@ -83,7 +83,7 @@ main_form = Core("GORA pre-alpha 0.1", Size(FORM_WIDTH, FORM_HEIGHT), res.backgr
 game = Game(res)
 main_form.add_object(game)
 
-net = LNet('localhost', PORT, 0.1)
+net = LNet(IP, PORT, 0.1)
 
 
 def get_data():
