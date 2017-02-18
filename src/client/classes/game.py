@@ -23,9 +23,18 @@ class Game(object):
         # self.pacman = Pacman(Position(480, 660), self.res.animations.pacman)
         # self.pacman.visible = False
         # self.add_object(self.pacman)
-        self.player = GameObject(Position(0, 0), self.res.textures.wall_type_default)
-        self.player.visible = True
-        self.add_object(self.player)
+        self.player1 = GameObject(Position(0, 0), self.res.textures.wall_type_default)
+        self.player1.visible = False
+        self.add_object(self.player1)
+        self.player2 = GameObject(Position(0, 0), self.res.textures.player2)
+        self.player2.visible = False
+        self.add_object(self.player2)
+        self.player3 = GameObject(Position(0, 0), self.res.textures.wall_type_default)
+        self.player3.visible = False
+        self.add_object(self.player3)
+        self.player4 = GameObject(Position(0, 0), self.res.textures.wall_type_default)
+        self.player4.visible = False
+        self.add_object(self.player4)
 
     def new_game(self):
         pass

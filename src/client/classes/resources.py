@@ -56,6 +56,7 @@ class Textures(object):
 
     def __init__(self):
         self.wall_type_default = Texture("images/wall/textures/wall_default.png")
+        self.player2 = Texture("images/wall/textures/player2.png")
 
         self.seed = Texture("images/seed.png")
 

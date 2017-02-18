@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import socket
 import threading
-from time import sleep
+from time import sleep, time
+import hashlib
 import pickle
 import pygame
 
@@ -10,9 +11,12 @@ from client.classes.helper_types import Size
 from client.classes.resources import Resources
 from client.classes.core import Core
 from client.classes.game import Game
+from client.classes.game_object import GameObject
 
 PORT = 22000
-TOKEN = 'korolion'
+LOGIN = 'KoroLion'
+
+TOKEN = hashlib.md5(str(time()).encode() + LOGIN.encode()).hexdigest()
 
 GO_LEFT = 1
 GO_RIGHT = 2
@@ -29,6 +33,7 @@ class CoreData(object):
     Храним данные для взаимодействия потоков
     """
     command = 0
+    connected = False
 
 
 class PlayerInfo(object):
@@ -85,8 +90,14 @@ def get_data():
     """
     Поток получения информации о состоянии игры с сервера
     """
-    net.tcp_send(pickle.dumps(str(CONNECT) + ' ' + TOKEN, 2))
-    while not main_form.terminated:
+    try:
+        net.tcp_send(pickle.dumps(str(CONNECT) + ' ' + TOKEN + ' ' + LOGIN, 2))
+        CoreData.connected = True
+    except ConnectionRefusedError:
+        CoreData.connected = False
+        print('Connection error!')
+
+    while not main_form.terminated and CoreData.connected:
         # threading.Lock().acquire() ?
         if CoreData.command != 0:
             net.udp_send(pickle.dumps(str(CoreData.command) + ' ' + TOKEN, 2))
@@ -94,8 +105,26 @@ def get_data():
 
         data = net.tcp_send(pickle.dumps(GET_DATA, 2))
         if data:
-            data = pickle.loads(data)
-            game.player.position = data.position
+            players = pickle.loads(data)
+            game.player1.visible = False
+            game.player2.visible = False
+            game.player3.visible = False
+            game.player4.visible = False
+            n = 1
+            for player in players:
+                if n == 1:
+                    game.player1.position = players[player].position
+                    game.player1.visible = True
+                elif n == 2:
+                    game.player2.position = players[player].position
+                    game.player2.visible = True
+                elif n == 3:
+                    game.player3.position = players[player].position
+                    game.player3.visible = True
+                elif n == 4:
+                    game.player4.position = players[player].position
+                    game.player4.visible = True
+                n += 1
             # print('{}:{}'.format(data.position.x, data.position.y))
 
         # threading.Lock().release() ?
@@ -128,7 +157,9 @@ def main():
         res.update()
         game.update()
         main_form.update()
-    net.udp_send(pickle.dumps(str(DISCONNECT) + ' ' + TOKEN, 2))
+
+    if CoreData.connected:
+        net.udp_send(pickle.dumps(str(DISCONNECT) + ' ' + TOKEN, 2))
 
 
 if __name__ == "__main__":

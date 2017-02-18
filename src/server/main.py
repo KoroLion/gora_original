@@ -33,8 +33,8 @@ class PlayerInfo:
         self.position.y += self.speed.y
 
 players = {}
-new_player = {'korolion': PlayerInfo(Position(1, 1), Position(0, 0))}
-players.update(new_player)
+#new_player = {'korolion': PlayerInfo(Position(1, 1), Position(0, 0))}
+#players.update(new_player)
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
@@ -57,9 +57,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
         # print("{} wrote: {}".format(self.client_address[0], data))
 
         if data[0] == GET_DATA:
-            self.request.sendall(pickle.dumps(players['korolion'], 2))
+            self.request.sendall(pickle.dumps(players, 2))
         elif data[0] == CONNECT:
             print(data[1] + ' connected!')
+            new_player = {data[1]: PlayerInfo(Position(1, 1), Position(0, 0))}
+            players.update(new_player)
 
 
 class UDPHandler(socketserver.DatagramRequestHandler):
@@ -87,6 +89,7 @@ class UDPHandler(socketserver.DatagramRequestHandler):
         elif data[0] == DISCONNECT:
             players[token].position = Position(1, 1)
             players[token].speed = Position(0, 0)
+            players.pop(token)
             print(data[1] + ' disconnected!')
 
 print('*GORA server pre-alpha 0.1*')
@@ -108,7 +111,8 @@ def main():
     print('Server started at {}:{}!'.format(ip, port))
     while True:
         sleep(0.05)
-        players['korolion'].update()
+        for player in players:
+            players[player].update()
 
     server.shutdown()
     server.server_close()
