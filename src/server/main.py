@@ -86,9 +86,10 @@ class UDPHandler(socketserver.DatagramRequestHandler):
         elif data[0] == DISCONNECT:
             player1.position = Position(1, 1)
             player1.speed = Position(0, 0)
-            print()
+            print(data[1] + ' disconnected!')
 
-
+print('*GORA server pre-alpha 0.1*')
+print('Initializing network...')
 server = socketserver.ThreadingTCPServer(('', PORT), TCPHandler)
 
 ip, port = server.server_address
@@ -103,6 +104,7 @@ server_udp_thread.start()
 
 
 def main():
+    print('Server started at {}:{}!'.format(ip, port))
     while True:
         sleep(0.05)
         player1.update()
