@@ -65,7 +65,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
 class UDPHandler(socketserver.DatagramRequestHandler):
     def handle(self):
         # self.request is the TCP socket connected to the client
-        data = pickle.loads(self.request[0])
+        data = str(pickle.loads(self.request[0]))
         data = data.split()
         data[0] = int(data[0])
         cur_thread = threading.current_thread()
