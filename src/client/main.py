@@ -89,7 +89,7 @@ def get_data():
     while not main_form.terminated:
         # threading.Lock().acquire() ?
         if CoreData.command != 0:
-            net.udp_send(pickle.dumps(CoreData.command, 2))
+            net.udp_send(pickle.dumps(str(CoreData.command) + ' ' + TOKEN, 2))
             CoreData.command = 0
 
         data = net.tcp_send(pickle.dumps(GET_DATA, 2))

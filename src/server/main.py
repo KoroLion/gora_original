@@ -32,9 +32,9 @@ class PlayerInfo:
         self.position.x += self.speed.x
         self.position.y += self.speed.y
 
-players = []
-
-player1 = PlayerInfo(Position(1, 1), Position(0, 0))
+players = {}
+new_player = {'korolion': PlayerInfo(Position(1, 1), Position(0, 0))}
+players.update(new_player)
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
@@ -57,7 +57,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
         # print("{} wrote: {}".format(self.client_address[0], data))
 
         if data[0] == GET_DATA:
-            self.request.sendall(pickle.dumps(player1, 2))
+            self.request.sendall(pickle.dumps(players['korolion'], 2))
         elif data[0] == CONNECT:
             print(data[1] + ' connected!')
 
@@ -68,24 +68,25 @@ class UDPHandler(socketserver.DatagramRequestHandler):
         data = str(pickle.loads(self.request[0]))
         data = data.split()
         data[0] = int(data[0])
+        token = data[1]
         cur_thread = threading.current_thread()
         # print("{} wrote: {}".format(self.client_address[0], data))
 
         if data[0] == GO_TOP:
-            player1.speed.x = 0
-            player1.speed.y = -player1.speed_amount
+            players[token].speed.x = 0
+            players[token].speed.y = -players[token].speed_amount
         elif data[0] == GO_BOTTOM:
-            player1.speed.x = 0
-            player1.speed.y = player1.speed_amount
+            players[token].speed.x = 0
+            players[token].speed.y = players[token].speed_amount
         elif data[0] == GO_LEFT:
-            player1.speed.x = -player1.speed_amount
-            player1.speed.y = 0
+            players[token].speed.x = -players[token].speed_amount
+            players[token].speed.y = 0
         elif data[0] == GO_RIGHT:
-            player1.speed.x = player1.speed_amount
-            player1.speed.y = 0
+            players[token].speed.x = players[token].speed_amount
+            players[token].speed.y = 0
         elif data[0] == DISCONNECT:
-            player1.position = Position(1, 1)
-            player1.speed = Position(0, 0)
+            players[token].position = Position(1, 1)
+            players[token].speed = Position(0, 0)
             print(data[1] + ' disconnected!')
 
 print('*GORA server pre-alpha 0.1*')
@@ -107,7 +108,7 @@ def main():
     print('Server started at {}:{}!'.format(ip, port))
     while True:
         sleep(0.05)
-        player1.update()
+        players['korolion'].update()
 
     server.shutdown()
     server.server_close()
