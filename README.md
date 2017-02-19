@@ -21,8 +21,9 @@
 > - virtualenv -p python3 venv_python3
 > - source venv_python3/bin/activate
 
-#### Установка pygame:
+#### Установка pygame и pylint:
 > - pip install pygame
+> - pip install pylint
 
 #### Установка и запуск Django:
 > - pip install pymysql
@@ -39,5 +40,8 @@
 - Прежде чем отправлять Merge Request, необходимо проверить код Pylint.
 - Merge Request будет принят только если код оценен на 10.
 - Чтобы проверить код, необходимо запустить из корня проекта команду ```pylint quest```
+
+#### Полезные ссылки:
+> - [Сравнение python2 и python3](https://pythonworld.ru/osnovy/python2-vs-python3-razlichiya-sintaksisa.html)
 
 **© MSHP-Yandex, Infit Team (Группа 53), 2017**
