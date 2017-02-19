@@ -25,7 +25,7 @@
     width: 100%;
 }
 
-.head{
+.head {
     font: normal normal normal 50px/1.4em 'arial black',sans-serif;
     text-align:center;
     margin:0 auto;
@@ -35,7 +35,7 @@
     margin-bottom: 100px;
 }
 
-body{
+body {
     background-color: black;
 }
 
@@ -45,7 +45,7 @@ body{
     top: 50%;
 }
 
-.button1 span{
+.button1 span {
     font: normal normal normal 29px/1.4em play,sans-serif;
     height:100px;
     line-height:100px;
@@ -71,7 +71,7 @@ body{
     top: 50%;
 }
 
-.button2 span{
+.button2 span {
     font: normal normal normal 29px/1.4em play, sans-serif;
     height:100px;
     line-height:100px;
