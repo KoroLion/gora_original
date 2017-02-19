@@ -8,7 +8,7 @@
 
 ### Стек технологий:
 > - Python 3.4
-> - Pygame (клиент), Pickle (передача данных), Twisted (сеть)
+> - Pygame (клиент)
 > - Django (веб часть)
 > - PyMySQL
 > - PyLint (оценка качества кода)
@@ -18,8 +18,11 @@
 ### Запуск проекта
 
 #### Настройка окружения (Yandex):
-> - virtualenv -p /usr/bin/python3.4 python3
-> - source python3/bin/activate
+> - virtualenv -p python3 venv_python3
+> - source venv_python3/bin/activate
+
+#### Установка pygame:
+> - pip install pygame
 
 #### Установка и запуск Django:
 > - pip install pymysql
