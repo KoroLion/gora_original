@@ -1,0 +1,111 @@
+@font-face {
+    font-family: 'HEAD';
+    src: url("../media/HEAD.woff2") format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.head span{
+    font-family: 'HEAD', sans-serif;
+    text-align: center;
+    width: 100%;
+    font-size: 100px;
+    color: white;
+    line-height: 115px;
+    background-color: black;
+    margin-right: 20px;
+    margin-left: 20px;
+}
+
+#video_bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1000;
+    width: 100%;
+}
+
+.head {
+    font: normal normal normal 50px/1.4em 'arial black',sans-serif;
+    text-align:center;
+    margin:0 auto;
+    max-width: 700px;
+    padding-top: 90px;
+    background-size: cover;
+    margin-bottom: 100px;
+}
+
+body {
+    background-color: black;
+}
+
+.button1 {
+    position: absolute;
+    left: 33%;
+    top: 50%;
+}
+
+.button1 span {
+    font: normal normal normal 29px/1.4em play,sans-serif;
+    height:100px;
+    line-height:100px;
+    font-size: 29px;
+    color: rgb(237, 237, 238);
+}
+
+.button1 .act {
+    margin-left:-100px;
+    position:relative;
+    height: 100px;
+    width: 200px;
+    text-align: center;
+    background-color: rgb(0, 130, 205);
+    border-radius: 10px;
+    cursor: pointer !important;
+    box-shadow: 1px 1px rgb(0, 68, 107), 3px 3px rgb(0, 68, 107), 5px 5px rgb(0, 68, 107), 7px 7px rgb(0, 68, 107), 9px 9px rgb(0, 68, 107);
+}
+
+.button2 {
+    position: absolute;
+    left: 66%;
+    top: 50%;
+}
+
+.button2 span {
+    font: normal normal normal 29px/1.4em play, sans-serif;
+    height:100px;
+    line-height:100px;
+    font-size: 29px;
+    color: rgb(237, 237, 238);
+}
+
+.button2 .act {
+    margin-left:-100px;
+    position:relative;
+    height: 100px;
+    width: 200px;
+    text-align: center;
+    background-color: rgb(255, 79, 79);
+    border-radius: 10px;
+    cursor: pointer !important;
+    box-shadow: 1px 1px rgb(128, 40, 40), 3px 3px rgb(128, 40, 40), 5px 5px rgb(128, 40, 40), 7px 7px rgb(128, 40, 40), 9px 9px rgb(128, 40, 40);
+}
+
+.act:hover {
+    /*transition: 0.3s ease-out;*/
+    background-color: rgb(95, 95, 95);
+    bottom: -9px;
+    left: 9px;
+    right: -9px;
+    top: 9px;
+    box-shadow: 0px 0px rgb(60, 60, 60), 3px 3px rgb(60, 60, 60);
+}
+
+.footer {
+    color: white;
+    width:100%;
+    position: fixed;
+    bottom: 0;
+    text-align: center;
+    font:
+}
