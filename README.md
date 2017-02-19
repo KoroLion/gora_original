@@ -15,9 +15,13 @@ GORA (Guild of Robot’s Armies) - двумерный многопользова
 > - Doxygen (документирование исходного кода)
 > - LibreOffice и MindMaple (проектная документация)
 
-## Настройка virtualenv (Python3 + Django):
-> - virtualenv -p /usr/bin/python3.4 quest_web
-> - source quest_web/bin/activate
+## Запуск проекта
+
+#### Настройка окружения (Yandex):
+> - virtualenv -p /usr/bin/python3.4 python3
+> - source python3/bin/activate
+
+#### Установка и запуск Django:
 > - pip install pymysql
 > - pip install django
 > - python manage.py runserver
