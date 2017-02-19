@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import socket
 import threading
 from time import sleep, time
 import hashlib
@@ -14,9 +13,7 @@ from classes.game import Game
 
 from classes.l_net import LNet
 
-PACKET_SIZE = 512
-
-IP = '195.170.57.185'
+IP = '127.0.0.1'
 PORT = 22000
 LOGIN = 'KoroLion'
 

@@ -1,3 +1,8 @@
+import socket
+
+PACKET_SIZE = 512
+
+
 class LNet(object):
     """
     Класс для простой работы с сетью
