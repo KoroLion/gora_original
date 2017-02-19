@@ -30,6 +30,9 @@
 > - pip install django
 > - python manage.py runserver
 
+#### PyCharm:
+> - Settings... -> Project Interpreter: выбрать venv_python3
+
 ### Положения разработки
 - Задание считается просроченным если к назначенному времени не был отправлен Merge Request по заданию
 - После отправки Merge Request с выполненным заданием, задание перемещается в группу checking
