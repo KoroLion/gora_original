@@ -5,7 +5,7 @@ import threading
 from time import sleep
 import json
 
-from classes.helper_types import Position
+from classes.helper_types import Point
 
 IP = ''
 PORT = 22000
@@ -62,7 +62,7 @@ class PlayerInfo:
     """!
     @brief Класс информации об игроке, хранящейся на сервере
     """
-    def __init__(self, position, speed, ip=''):
+    def __init__(self, position: Point, speed: Point, ip: str=''):
         self.position = position
         self.speed = speed
         self.ip = ip
@@ -99,7 +99,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 self.request.sendall(json.dumps(j_players).encode())
             elif data.get(J_COMMAND) == CONNECT:
                 print(data[J_TOKEN] + ' (' + self.client_address[0] + ') connected!')
-                new_player = {data[J_TOKEN]: PlayerInfo(Position(1, 1), Position(0, 0), self.client_address[0])}
+                new_player = {data[J_TOKEN]: PlayerInfo(Point(1, 1), Point(0, 0), self.client_address[0])}
                 server.players.update(new_player)
 
 
@@ -138,8 +138,8 @@ class UDPHandler(socketserver.DatagramRequestHandler):
                     players[token].speed.x = players[token].speed_amount
                     players[token].speed.y = 0
                 elif command == DISCONNECT:
-                    players[token].position = Position(1, 1)
-                    players[token].speed = Position(0, 0)
+                    players[token].position = Point(1, 1)
+                    players[token].speed = Point(0, 0)
                     print(token + ' (' + players[token].ip + ') disconnected!')
                     players.pop(token)
 
