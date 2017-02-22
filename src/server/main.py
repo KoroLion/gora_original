@@ -4,6 +4,7 @@ import socketserver
 import threading
 from time import sleep
 import pickle
+import json
 
 from classes.helper_types import Position
 
@@ -18,6 +19,11 @@ GO_BOTTOM = 4
 CONNECT = 5
 GET_DATA = 6
 DISCONNECT = 7
+
+# constants for JSON
+J_COMMAND = '1'
+J_TOKEN = '2'
+J_LOGIN = '3'
 
 
 class PlayerInfo:
@@ -34,8 +40,6 @@ class PlayerInfo:
         self.position.y += self.speed.y
 
 players = {}
-#new_player = {'korolion': PlayerInfo(Position(1, 1), Position(0, 0))}
-#players.update(new_player)
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
@@ -49,16 +53,15 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
         if data:
             data = data.decode()
-            data = data.split()
-            data[0] = int(data[0])
+            data = json.loads(data)
             cur_thread = threading.current_thread()
             # print("{} wrote: {}".format(self.client_address[0], data))
 
-            if data[0] == GET_DATA:
+            if data.get(J_COMMAND) == GET_DATA:
                 self.request.sendall(pickle.dumps(players, 2))
-            elif data[0] == CONNECT:
-                print(data[1] + ' connected!')
-                new_player = {data[1]: PlayerInfo(Position(1, 1), Position(0, 0))}
+            elif data.get(J_COMMAND) == CONNECT:
+                print(data[J_TOKEN] + ' connected!')
+                new_player = {data[J_TOKEN]: PlayerInfo(Position(1, 1), Position(0, 0))}
                 players.update(new_player)
 
 

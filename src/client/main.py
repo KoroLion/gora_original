@@ -4,6 +4,7 @@ from time import sleep, time
 import hashlib
 import pickle
 import pygame
+import json
 
 from classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
 from classes.helper_types import Size
@@ -27,6 +28,11 @@ GO_BOTTOM = 4
 CONNECT = 5
 GET_DATA = 6
 DISCONNECT = 7
+
+# constants for JSON
+J_COMMAND = '1'
+J_TOKEN = '2'
+J_LOGIN = '3'
 
 
 class CoreData(object):
@@ -66,7 +72,8 @@ def get_data():
     Поток получения информации о состоянии игры с сервера
     """
     try:
-        data = str(CONNECT) + ' ' + TOKEN + ' ' + LOGIN
+        data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN}
+        data = json.dumps(data)
         net.tcp_send(data.encode())
         CoreData.connected = True
     except ConnectionRefusedError:
@@ -76,11 +83,14 @@ def get_data():
     while not main_form.terminated and CoreData.connected:
         # threading.Lock().acquire() ?
         if CoreData.command != 0:
+            json.dumps({"com": CoreData.command})
             data = str(CoreData.command) + ' ' + TOKEN
             net.udp_send(data.encode())
             CoreData.command = 0
 
-        data = net.tcp_send(str(GET_DATA).encode())
+        data = {J_COMMAND: GET_DATA}
+        data = json.dumps(data)
+        data = net.tcp_send(data.encode())
         if data:
             players = pickle.loads(data)
             game.player1.visible = False
