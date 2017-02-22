@@ -29,7 +29,7 @@ J_POSITION_Y = '11'
 
 class PlayerInfo:
     """!
-    Класс информации об игроке, хранящейся на сервере
+    @brief Класс информации об игроке, хранящейся на сервере
     """
     def __init__(self, position, speed, ip=''):
         self.position = position
@@ -73,6 +73,10 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
 
 class UDPHandler(socketserver.DatagramRequestHandler):
+    """!
+    @brief поток обработчика UDP запросов
+    """
+
     def handle(self):
         cur_thread = threading.current_thread()
         # self.request это TCP сокет подключённый к клиенту
@@ -109,17 +113,18 @@ class UDPHandler(socketserver.DatagramRequestHandler):
 
 print('*GORA server pre-alpha 0.1*')
 print('Initializing network...')
-server = socketserver.ThreadingTCPServer(('', PORT), TCPHandler)
 
-ip, port = server.server_address
-server_thread = threading.Thread(target=server.serve_forever)
-server_thread.daemon = True
-server_thread.start()
+server_tcp = socketserver.ThreadingTCPServer(('', PORT), TCPHandler)
+server_tcp_thread = threading.Thread(target=server_tcp.serve_forever)
+server_tcp_thread.daemon = True
+server_tcp_thread.start()
 
 server_udp = socketserver.ThreadingUDPServer(('', PORT), UDPHandler)
 server_udp_thread = threading.Thread(target=server_udp.serve_forever)
 server_udp_thread.daemon = True
 server_udp_thread.start()
+
+ip, port = server_tcp.server_address
 
 
 def main():
