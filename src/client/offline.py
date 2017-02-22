@@ -47,33 +47,35 @@ def main():
             elif event.type == pygame.MOUSEMOTION:
                 mouse_pos = event.pos
 
-        look_at_mouse(game.player1, mouse_pos)
+        game.player1.texture.angle = get_angle(game.player1.position, mouse_pos, game.player1.size)
 
         res.update()
         game.update()
         main_form.update()
 
 
-def look_at_mouse(player, pos):
+def get_angle(pl_pos, pos, size):
     """!
-    @brief Поворачивает обьект в сторону мыши
+    @brief Возращает угол между мышью и объектом
 
-    Вычисляет тангенс угла между объектом и мышью;
-    С помощью арктангенса вычисляет угол в градусах;
-    Переводит его в радианы;
-    Поворачивает его на определённый угол.
-
-    @param player: game_object
+    @param size: Size(helper_types)
+    @param pl_pos: list(координаты игрока)
     @param pos: list(координаты мыши)
+    @return: float(градус поворота)
     """
-    x = pos[0] + 10 - player.position.x
-    y = player.position.y - pos[1] + 10
+    x = pos[0] + size.width - pl_pos.x
+    y = pl_pos.y - pos[1] + size.height
     if x != 0:
         angle = math.atan(y / x) * 180 / 3.14
         if x > 0:
-            game.player1.texture.angle = angle + 270
+            angle += 270
+            return angle
         else:
-            game.player1.texture.angle = angle + 90
+            angle += 90
+            return angle
+    else:
+        angle = 0
+        return angle
 
 
 def go_right(player):
