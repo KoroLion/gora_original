@@ -31,9 +31,10 @@ class PlayerInfo:
     """!
     Класс информации об игроке, хранящейся на сервере
     """
-    def __init__(self, position, speed):
+    def __init__(self, position, speed, ip=''):
         self.position = position
         self.speed = speed
+        self.ip = ip
         self.speed_amount = 3
         self.color = 0
 
@@ -66,8 +67,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     j_players.append(data)
                 self.request.sendall(json.dumps(j_players).encode())
             elif data.get(J_COMMAND) == CONNECT:
-                print(data[J_TOKEN] + ' connected!')
-                new_player = {data[J_TOKEN]: PlayerInfo(Position(1, 1), Position(0, 0))}
+                print(data[J_TOKEN] + ' (' + self.client_address[0] + ') connected!')
+                new_player = {data[J_TOKEN]: PlayerInfo(Position(1, 1), Position(0, 0), self.client_address[0])}
                 players.update(new_player)
 
 
@@ -103,8 +104,8 @@ class UDPHandler(socketserver.DatagramRequestHandler):
                 elif command == DISCONNECT:
                     players[token].position = Position(1, 1)
                     players[token].speed = Position(0, 0)
+                    print(token + ' (' + players[token].ip + ') disconnected!')
                     players.pop(token)
-                    print(token + ' disconnected!')
 
 print('*GORA server pre-alpha 0.1*')
 print('Initializing network...')

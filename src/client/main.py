@@ -2,7 +2,6 @@
 import threading
 from time import sleep, time
 import hashlib
-import pickle
 import pygame
 import json
 
@@ -109,7 +108,6 @@ def get_data():
             n = 1
             for player in players:
                 new_position = Point(player[J_POSITION_X], player[J_POSITION_Y])
-                # print(new_position)
                 if n == 1:
                     game.player1.position = new_position
                     game.player1.visible = True
