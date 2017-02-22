@@ -24,7 +24,7 @@ class Size(object):
     @brief хранение данных с шириной и выстой
     """
 
-    def __init__(self, width, height):
+    def __init__(self, width: int, height: int):
         """!
         :type width: int
         :type height: int
