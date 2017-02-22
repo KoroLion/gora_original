@@ -44,7 +44,7 @@ class ServerCore(object):
         server_udp_thread.daemon = True
         server_udp_thread.start()
 
-        self.ip, self.port = server_tcp.server_address
+        self.ip, self.port = self.server_tcp.server_address
         self.players = {}
         self.terminated = False
 
