@@ -57,13 +57,19 @@ def main():
 def look_at_mouse(player, pos):
     """!
     @brief Поворачивает обьект в сторону мыши
+
+    Вычисляет тангенс угла между объектом и мышью;
+    С помощью арктангенса вычисляет угол в градусах;
+    Переводит его в радианы;
+    Поворачивает его на определённый угол.
+
     @param player: game_object
     @param pos: list(координаты мыши)
     """
     x = pos[0] + 10 - player.position.x
     y = player.position.y - pos[1] + 10
     if x != 0:
-        angle = math.atan(y/x)*180/3.14
+        angle = math.atan(y / x) * 180 / 3.14
         if x > 0:
             game.player1.texture.angle = angle + 270
         else:
