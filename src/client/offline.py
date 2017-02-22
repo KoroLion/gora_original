@@ -29,7 +29,7 @@ def main():
     """!
     @brief Переменная, хранящая координаты мыши
     """
-    mouse_pos = (0, 0)
+    mouse_pos = (0, 0)  # type: list
 
     while not main_form.terminated:
         for event in pygame.event.get():
@@ -54,7 +54,7 @@ def main():
         main_form.update()
 
 
-def get_angle(pl_pos, pos, size):
+def get_angle(pl_pos: list, pos: list, size: Size) -> float:
     """!
     @brief Возращает угол между мышью и объектом
 
