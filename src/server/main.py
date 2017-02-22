@@ -34,13 +34,13 @@ class ServerCore(object):
     Занимается обработкой комманд и хранением данных
     """
     def __init__(self, ip: str, port: int):
-        server_tcp = socketserver.ThreadingTCPServer((ip, port), TCPHandler)
-        server_tcp_thread = threading.Thread(target=server_tcp.serve_forever)
+        self.server_tcp = socketserver.ThreadingTCPServer((ip, port), TCPHandler)
+        server_tcp_thread = threading.Thread(target=self.server_tcp.serve_forever)
         server_tcp_thread.daemon = True
         server_tcp_thread.start()
 
-        server_udp = socketserver.ThreadingUDPServer((ip, port), UDPHandler)
-        server_udp_thread = threading.Thread(target=server_udp.serve_forever)
+        self.server_udp = socketserver.ThreadingUDPServer((ip, port), UDPHandler)
+        server_udp_thread = threading.Thread(target=self.server_udp.serve_forever)
         server_udp_thread.daemon = True
         server_udp_thread.start()
 
@@ -49,6 +49,8 @@ class ServerCore(object):
         self.terminated = False
 
     def terminate(self):
+        self.server_tcp.shutdown()
+        self.server_tcp.server_close()
         self.terminated = True
 
     def update_players(self):
@@ -151,9 +153,6 @@ def main():
     while not server.terminated:
         sleep(0.05)
         server.update_players()
-
-    # server.shutdown()
-    # server.server_close()
 
 if __name__ == "__main__":
     main()
