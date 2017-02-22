@@ -134,6 +134,7 @@ server = ServerCore(IP, PORT)
 
 
 def main():
+    server.start_server()
     print('Server started at {}:{}!'.format(server.ip, server.port))
     while not server.terminated:
         sleep(0.05)
