@@ -7,6 +7,7 @@ import json
 
 from classes.helper_types import Position
 
+IP = ''
 PORT = 22000
 PACKET_SIZE = 512
 
@@ -27,6 +28,34 @@ J_POSITION_X = '10'
 J_POSITION_Y = '11'
 
 
+class ServerCore(object):
+    """!
+    @brief главный класс сервера
+    Занимается обработкой комманд и хранением данных
+    """
+    def __init__(self, ip: str, port: int):
+        server_tcp = socketserver.ThreadingTCPServer((ip, port), TCPHandler)
+        server_tcp_thread = threading.Thread(target=server_tcp.serve_forever)
+        server_tcp_thread.daemon = True
+        server_tcp_thread.start()
+
+        server_udp = socketserver.ThreadingUDPServer((ip, port), UDPHandler)
+        server_udp_thread = threading.Thread(target=server_udp.serve_forever)
+        server_udp_thread.daemon = True
+        server_udp_thread.start()
+
+        self.ip, self.port = server_tcp.server_address
+        self.players = {}
+        self.terminated = False
+
+    def terminate(self):
+        self.terminated = True
+
+    def update_players(self):
+        for player in self.players:
+            self.players[player].update()
+
+
 class PlayerInfo:
     """!
     @brief Класс информации об игроке, хранящейся на сервере
@@ -41,8 +70,6 @@ class PlayerInfo:
     def update(self):
         self.position.x += self.speed.x
         self.position.y += self.speed.y
-
-players = {}
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
@@ -62,14 +89,16 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
             if data.get(J_COMMAND) == GET_DATA:
                 j_players = []
-                for token in players:
-                    data = {J_TOKEN: token, J_POSITION_X: players[token].position.x, J_POSITION_Y: players[token].position.y}
+                for token in server.players:
+                    data = {J_TOKEN: token,
+                            J_POSITION_X: server.players[token].position.x,
+                            J_POSITION_Y: server.players[token].position.y}
                     j_players.append(data)
                 self.request.sendall(json.dumps(j_players).encode())
             elif data.get(J_COMMAND) == CONNECT:
                 print(data[J_TOKEN] + ' (' + self.client_address[0] + ') connected!')
                 new_player = {data[J_TOKEN]: PlayerInfo(Position(1, 1), Position(0, 0), self.client_address[0])}
-                players.update(new_player)
+                server.players.update(new_player)
 
 
 class UDPHandler(socketserver.DatagramRequestHandler):
@@ -78,6 +107,7 @@ class UDPHandler(socketserver.DatagramRequestHandler):
     """
 
     def handle(self):
+        players = server.players
         cur_thread = threading.current_thread()
         # self.request это TCP сокет подключённый к клиенту
         data = self.request[0]
@@ -112,30 +142,18 @@ class UDPHandler(socketserver.DatagramRequestHandler):
                     players.pop(token)
 
 print('*GORA server pre-alpha 0.1*')
-print('Initializing network...')
-
-server_tcp = socketserver.ThreadingTCPServer(('', PORT), TCPHandler)
-server_tcp_thread = threading.Thread(target=server_tcp.serve_forever)
-server_tcp_thread.daemon = True
-server_tcp_thread.start()
-
-server_udp = socketserver.ThreadingUDPServer(('', PORT), UDPHandler)
-server_udp_thread = threading.Thread(target=server_udp.serve_forever)
-server_udp_thread.daemon = True
-server_udp_thread.start()
-
-ip, port = server_tcp.server_address
+print('Initializing server...')
+server = ServerCore(IP, PORT)
 
 
 def main():
-    print('Server started at {}:{}!'.format(ip, port))
-    while True:
+    print('Server started at {}:{}!'.format(server.ip, server.port))
+    while not server.terminated:
         sleep(0.05)
-        for player in players:
-            players[player].update()
+        server.update_players()
 
-    server.shutdown()
-    server.server_close()
+    # server.shutdown()
+    # server.server_close()
 
 if __name__ == "__main__":
     main()
