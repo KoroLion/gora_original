@@ -6,26 +6,9 @@ from time import sleep
 import json
 
 from classes.helper_types import Point
+from src.shared_constants import *
 
 IP = ''
-PORT = 22000
-PACKET_SIZE = 512
-
-GO_LEFT = 1
-GO_RIGHT = 2
-GO_TOP = 3
-GO_BOTTOM = 4
-
-CONNECT = 5
-GET_DATA = 6
-DISCONNECT = 7
-
-# constants for JSON
-J_COMMAND = '1'
-J_TOKEN = '2'
-J_LOGIN = '3'
-J_POSITION_X = '10'
-J_POSITION_Y = '11'
 
 
 class ServerCore(object):
@@ -35,18 +18,20 @@ class ServerCore(object):
     """
     def __init__(self, ip: str, port: int):
         self.server_tcp = socketserver.ThreadingTCPServer((ip, port), TCPHandler)
-        server_tcp_thread = threading.Thread(target=self.server_tcp.serve_forever)
-        server_tcp_thread.daemon = True
-        server_tcp_thread.start()
-
         self.server_udp = socketserver.ThreadingUDPServer((ip, port), UDPHandler)
-        server_udp_thread = threading.Thread(target=self.server_udp.serve_forever)
-        server_udp_thread.daemon = True
-        server_udp_thread.start()
 
         self.ip, self.port = self.server_tcp.server_address
         self.players = {}
         self.terminated = False
+
+    def start_server(self):
+        server_tcp_thread = threading.Thread(target=self.server_tcp.serve_forever)
+        server_tcp_thread.daemon = True
+        server_tcp_thread.start()
+
+        server_udp_thread = threading.Thread(target=self.server_udp.serve_forever)
+        server_udp_thread.daemon = True
+        server_udp_thread.start()
 
     def terminate(self):
         self.server_tcp.shutdown()
