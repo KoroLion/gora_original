@@ -15,6 +15,19 @@ class Position(object):
         self.y = y  # pylint: disable=invalid-name
 
 
+class Point(object):
+    """Class for storing position data."""
+
+    def __init__(self, x: int, y: int):
+        """
+        Initialize Position object
+        :type x: int
+        :type y: int
+        """
+        self.x = x  # pylint: disable=invalid-name
+        self.y = y  # pylint: disable=invalid-name
+
+
 class Size(object):
     """Class for storing size data."""
 

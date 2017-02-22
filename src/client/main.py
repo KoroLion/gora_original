@@ -7,7 +7,7 @@ import pygame
 import json
 
 from classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
-from classes.helper_types import Size
+from classes.helper_types import Size, Point
 from classes.resources import Resources
 from classes.core import Core
 from classes.game import Game
@@ -34,13 +34,19 @@ J_COMMAND = '1'
 J_TOKEN = '2'
 J_LOGIN = '3'
 
+J_POSITION_X = '10'
+J_POSITION_Y = '11'
+
 
 class CoreData(object):
-    """
-    Храним данные для взаимодействия потоков
+    """!
+    @brief Храним данные для взаимодействия потоков и базовые команды клиента
     """
     command = 0
     connected = False
+
+    def disconnect(self):
+        pass
 
 
 class PlayerInfo(object):
@@ -83,8 +89,7 @@ def get_data():
     while not main_form.terminated and CoreData.connected:
         # threading.Lock().acquire() ?
         if CoreData.command != 0:
-            json.dumps({"com": CoreData.command})
-            data = str(CoreData.command) + ' ' + TOKEN
+            data = json.dumps({J_COMMAND: CoreData.command, J_TOKEN: TOKEN})
             net.udp_send(data.encode())
             CoreData.command = 0
 
@@ -92,24 +97,30 @@ def get_data():
         data = json.dumps(data)
         data = net.tcp_send(data.encode())
         if data:
-            players = pickle.loads(data)
+            players = json.loads(data)
+            # вид:
+            # [{'2': '67bac7074979ff6707e44a0536ab468d', '10': 1, '11': 1},
+            # {'2': '67bac7074979ff6707e44a0536ab468d', '10': 1, '11': 1}]
+
             game.player1.visible = False
             game.player2.visible = False
             game.player3.visible = False
             game.player4.visible = False
             n = 1
             for player in players:
+                new_position = Point(player[J_POSITION_X], player[J_POSITION_Y])
+                # print(new_position)
                 if n == 1:
-                    game.player1.position = players[player].position
+                    game.player1.position = new_position
                     game.player1.visible = True
                 elif n == 2:
-                    game.player2.position = players[player].position
+                    game.player2.position = new_position
                     game.player2.visible = True
                 elif n == 3:
-                    game.player3.position = players[player].position
+                    game.player3.position = new_position
                     game.player3.visible = True
                 elif n == 4:
-                    game.player4.position = players[player].position
+                    game.player4.position = new_position
                     game.player4.visible = True
                 n += 1
             # print('{}:{}'.format(data.position.x, data.position.y))
@@ -146,7 +157,7 @@ def main():
         main_form.update()
 
     if CoreData.connected:
-        data = str(DISCONNECT) + ' ' + TOKEN
+        data = json.dumps({J_COMMAND: DISCONNECT, J_TOKEN: TOKEN})
         net.udp_send(data.encode())
 
 

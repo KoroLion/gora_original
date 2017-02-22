@@ -3,7 +3,6 @@
 import socketserver
 import threading
 from time import sleep
-import pickle
 import json
 
 from classes.helper_types import Position
@@ -24,16 +23,19 @@ DISCONNECT = 7
 J_COMMAND = '1'
 J_TOKEN = '2'
 J_LOGIN = '3'
+J_POSITION_X = '10'
+J_POSITION_Y = '11'
 
 
 class PlayerInfo:
-    """
+    """!
     Класс информации об игроке, хранящейся на сервере
     """
     def __init__(self, position, speed):
         self.position = position
         self.speed = speed
         self.speed_amount = 3
+        self.color = 0
 
     def update(self):
         self.position.x += self.speed.x
@@ -43,8 +45,8 @@ players = {}
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
-    """
-    Запускаем
+    """!
+    @brief поток обработчика TCP запросов
     """
 
     def handle(self):
@@ -58,7 +60,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
             # print("{} wrote: {}".format(self.client_address[0], data))
 
             if data.get(J_COMMAND) == GET_DATA:
-                self.request.sendall(pickle.dumps(players, 2))
+                j_players = []
+                for token in players:
+                    data = {J_TOKEN: token, J_POSITION_X: players[token].position.x, J_POSITION_Y: players[token].position.y}
+                    j_players.append(data)
+                self.request.sendall(json.dumps(j_players).encode())
             elif data.get(J_COMMAND) == CONNECT:
                 print(data[J_TOKEN] + ' connected!')
                 new_player = {data[J_TOKEN]: PlayerInfo(Position(1, 1), Position(0, 0))}
@@ -67,33 +73,38 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
 class UDPHandler(socketserver.DatagramRequestHandler):
     def handle(self):
-        # self.request is the TCP socket connected to the client
+        cur_thread = threading.current_thread()
+        # self.request это TCP сокет подключённый к клиенту
         data = self.request[0]
         if data:
-            data = self.request[0].decode()
-            data = data.split()
-            data[0] = int(data[0])
-            token = data[1]
-            cur_thread = threading.current_thread()
-            # print("{} wrote: {}".format(self.client_address[0], data))
+            data = data.decode()
+            try:
+                data = json.loads(data)
+                correct_data = True
+            except json.decoder.JSONDecodeError:
+                print('#ERROR: incorrect format of input data')
+                correct_data = False
 
-            if data[0] == GO_TOP:
-                players[token].speed.x = 0
-                players[token].speed.y = -players[token].speed_amount
-            elif data[0] == GO_BOTTOM:
-                players[token].speed.x = 0
-                players[token].speed.y = players[token].speed_amount
-            elif data[0] == GO_LEFT:
-                players[token].speed.x = -players[token].speed_amount
-                players[token].speed.y = 0
-            elif data[0] == GO_RIGHT:
-                players[token].speed.x = players[token].speed_amount
-                players[token].speed.y = 0
-            elif data[0] == DISCONNECT:
-                players[token].position = Position(1, 1)
-                players[token].speed = Position(0, 0)
-                players.pop(token)
-                print(data[1] + ' disconnected!')
+            if correct_data:
+                command = data.get(J_COMMAND)
+                token = data.get(J_TOKEN)
+                if command == GO_TOP:
+                    players[token].speed.x = 0
+                    players[token].speed.y = -players[token].speed_amount
+                elif command == GO_BOTTOM:
+                    players[token].speed.x = 0
+                    players[token].speed.y = players[token].speed_amount
+                elif command == GO_LEFT:
+                    players[token].speed.x = -players[token].speed_amount
+                    players[token].speed.y = 0
+                elif command == GO_RIGHT:
+                    players[token].speed.x = players[token].speed_amount
+                    players[token].speed.y = 0
+                elif command == DISCONNECT:
+                    players[token].position = Position(1, 1)
+                    players[token].speed = Position(0, 0)
+                    players.pop(token)
+                    print(token + ' disconnected!')
 
 print('*GORA server pre-alpha 0.1*')
 print('Initializing network...')
