@@ -5,7 +5,7 @@ import threading
 from time import sleep
 import json
 
-from classes.helper_types import Point
+from src.helper_types import Point
 from src.shared_constants import *
 
 IP = ''

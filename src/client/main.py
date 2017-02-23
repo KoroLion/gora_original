@@ -6,8 +6,9 @@ import pygame
 import json
 
 from src.shared_constants import *
+from src.helper_types import Size, Point
+
 from classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
-from classes.helper_types import Size, Point
 from classes.resources import Resources
 from classes.core import Core
 from classes.game import Game

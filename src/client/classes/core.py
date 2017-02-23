@@ -2,7 +2,7 @@
 """Main game core module"""
 import pygame
 from .constants import *
-from .helper_types import Position
+from src.helper_types import Point
 
 
 class Core(object):
@@ -57,7 +57,7 @@ class Core(object):
         :param direction: int
         :return GameObject
         """
-        position = Position(obj_position.x, obj_position.y)
+        position = Point(obj_position.x, obj_position.y)
 
         for obj in self.objects:
             if direction == 0:

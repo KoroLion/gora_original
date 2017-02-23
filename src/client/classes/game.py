@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 """Game module"""
 import pygame
-from .helper_types import Position
+from src.helper_types import Point
 from .game_object import GameObject
 
 D_TOP = 0
@@ -13,7 +13,7 @@ D_RIGHT = 3
 class Game(object):
     def __init__(self, resources):
         self.res = resources
-        self.position = Position(0, 0)
+        self.position = Point(0, 0)
         self.visible = True
         self.score = 0
         self.over = False
@@ -23,16 +23,16 @@ class Game(object):
         # self.pacman = Pacman(Position(480, 660), self.res.animations.pacman)
         # self.pacman.visible = False
         # self.add_object(self.pacman)
-        self.player1 = GameObject(Position(0, 0), self.res.textures.wall_type_default)
+        self.player1 = GameObject(Point(0, 0), self.res.textures.wall_type_default)
         self.player1.visible = False
         self.add_object(self.player1)
-        self.player2 = GameObject(Position(0, 0), self.res.textures.player2)
+        self.player2 = GameObject(Point(0, 0), self.res.textures.player2)
         self.player2.visible = False
         self.add_object(self.player2)
-        self.player3 = GameObject(Position(0, 0), self.res.textures.wall_type_default)
+        self.player3 = GameObject(Point(0, 0), self.res.textures.wall_type_default)
         self.player3.visible = False
         self.add_object(self.player3)
-        self.player4 = GameObject(Position(0, 0), self.res.textures.wall_type_default)
+        self.player4 = GameObject(Point(0, 0), self.res.textures.wall_type_default)
         self.player4.visible = False
         self.add_object(self.player4)
 
