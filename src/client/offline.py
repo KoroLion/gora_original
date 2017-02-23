@@ -7,10 +7,11 @@ import pygame
 import math
 
 from classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
-from classes.helper_types import Size
 from classes.resources import Resources
 from classes.core import Core
 from classes.game import Game
+
+from src.helper_types import Size
 
 pygame.init()
 
@@ -26,9 +27,7 @@ def main():
     @brief Поток отображения offline клиента
     """
     game.player1.visible = True
-    """!
-    @brief Переменная, хранящая координаты мыши
-    """
+    ## @brief Переменная, хранящая координаты мыши
     mouse_pos = (0, 0)  # type: list
 
     while not main_form.terminated:

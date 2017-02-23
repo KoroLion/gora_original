@@ -21,50 +21,43 @@ LOGIN = 'KoroLion'
 TOKEN = hashlib.md5(str(time()).encode() + LOGIN.encode()).hexdigest()
 
 
-class CoreData(object):
+class Client(object):
     """!
     @brief Храним данные для взаимодействия потоков и базовые команды клиента
     """
-    command = 0
-    connected = False
+
+    def __init__(self):
+        self.command = 0
+        self.connected = False
+
+    def connect(self) -> bool:
+        try:
+            data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN}
+            data = json.dumps(data)
+            net.tcp_send(data.encode())
+            self.connected = True
+        except ConnectionRefusedError:
+            self.connected = False
+
+        return self.connected
 
     def disconnect(self):
-        pass
-
-
-class PlayerInfo(object):
-    """!
-    @brief Класс информации об игроке, хранящейся на сервере
-    """
-    def __init__(self, position, speed):
-        self.position = position
-        self.speed = speed
-        self.speed_amount = 3
-
-    def update(self):
-        self.position.x += self.speed.x
-        self.position.y += self.speed.y
+        self.connected = False
 
 
 def get_data():
     """!
     @brief Поток получения информации о состоянии игры с сервера
     """
-    try:
-        data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN}
-        data = json.dumps(data)
-        net.tcp_send(data.encode())
-        CoreData.connected = True
-    except ConnectionRefusedError:
-        CoreData.connected = False
-        print('Connection error!')
+    while not client.connected:
+        client.connect()
 
-    while not main_form.terminated and CoreData.connected:
+    while not main_form.terminated and client.connected:
         # threading.Lock().acquire() ?
-        if CoreData.command != 0:
-            data = json.dumps({J_COMMAND: CoreData.command, J_TOKEN: TOKEN})
+        if client.command != 0:
+            data = json.dumps({J_COMMAND: client.command, J_TOKEN: TOKEN})
             net.udp_send(data.encode())
-            CoreData.command = 0
+            client.command = 0
 
         data = {J_COMMAND: GET_DATA}
         data = json.dumps(data)
@@ -111,19 +104,19 @@ def main():
                 main_form.terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
-                    CoreData.command = GO_TOP
+                    client.command = GO_TOP
                 if event.key == pygame.K_s:
-                    CoreData.command = GO_BOTTOM
+                    client.command = GO_BOTTOM
                 if event.key == pygame.K_a:
-                    CoreData.command = GO_LEFT
+                    client.command = GO_LEFT
                 if event.key == pygame.K_d:
-                    CoreData.command = GO_RIGHT
+                    client.command = GO_RIGHT
 
         res.update()
         game.update()
         main_form.update()
 
-    if CoreData.connected:
+    if client.connected:
         data = json.dumps({J_COMMAND: DISCONNECT, J_TOKEN: TOKEN})
         net.udp_send(data.encode())
 
@@ -131,11 +124,14 @@ def main():
 if __name__ == "__main__":
     pygame.init()
 
+    client = Client()
+
     res = Resources(sounds_volume=0.5)
 
     main_form = Core("GORA pre-alpha 0.1", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
     game = Game(res)
     main_form.add_object(game)
+
 
     net = LNet(IP, PORT)
 
