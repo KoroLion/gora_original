@@ -2,6 +2,7 @@ import threading
 from time import sleep, time
 import hashlib
 import pygame
+import math
 import json
 
 from src.shared_constants import *
@@ -17,6 +18,7 @@ from classes.l_net import LNet
 
 IP = '127.0.0.1'
 LOGIN = 'KoroLion'
+SKIN = SKIN_BLUE
 
 TOKEN = hashlib.md5(str(time()).encode() + LOGIN.encode()).hexdigest()
 
@@ -52,7 +54,7 @@ class Client(object):
         return self.connected
 
     def get_data_from_server(self) -> str:
-        data = {J_COMMAND: GET_DATA}
+        data = {J_COMMAND: GET_DATA, J_TOKEN: TOKEN, J_ANGLE: game.players.get(TOKEN).angle}
         data = json.dumps(data)
         try:
             return net.udp_send(data.encode())
@@ -109,14 +111,40 @@ def get_data():
             for player in players:
                 # если нет объекта для игрока - создаём его (которые подключились)
                 if not game.players.get(player[J_TOKEN]):
-                    new_player = {player[J_TOKEN]: Robot(Point(0, 0), res.textures.wall_type_default, player[J_TOKEN])}
+                    new_player = {player[J_TOKEN]: Robot(Point(0, 0), res.textures.wall_type_default)}
                     game.players.update(new_player)
 
                 # ставим игрока на новую позицию, полученную с сервера
                 new_position = Point(player[J_POSITION_X], player[J_POSITION_Y])
                 game.players[player[J_TOKEN]].position = new_position
+                game.players[player[J_TOKEN]].angle = player[J_ANGLE]
+                game.players[player[J_TOKEN]].texture.angle = player[J_ANGLE]
 
         sleep(0.05)
+
+
+def get_angle(pl_pos: Point, pos: list, size: Size) -> float:
+    """!
+    @brief Возращает угол между мышью и объектом
+
+    @param size: Size(helper_types)
+    @param pl_pos: list(координаты игрока)
+    @param pos: list(координаты мыши)
+    @return: float(градус поворота)
+    """
+    x = pos[0] + size.width - pl_pos.x
+    y = pl_pos.y - pos[1] + size.height
+    if x != 0:
+        angle = math.atan(y / x) * 180 / 3.14
+        if x > 0:
+            angle += 270
+            return angle
+        else:
+            angle += 90
+            return angle
+    else:
+        angle = 0
+        return angle
 
 
 def main():
@@ -124,6 +152,7 @@ def main():
     @brief Поток отображения клиента
     """
     while not main_form.terminated:
+        mouse_pos = (0, 0)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 main_form.terminate()
@@ -136,6 +165,10 @@ def main():
                     client.command = GO_LEFT
                 if event.key == pygame.K_d:
                     client.command = GO_RIGHT
+            elif event.type == pygame.MOUSEMOTION:
+                mouse_pos = event.pos
+
+        game.players[TOKEN].angle = get_angle(game.players[TOKEN].position, mouse_pos, game.players[TOKEN].size)
 
         res.update()
         game.update()
@@ -157,6 +190,8 @@ if __name__ == "__main__":
     main_form.add_object(game)
 
     net = LNet(IP, PORT)
+
+    game.players.update({TOKEN: Robot(Point(0, 0), res.textures.wall_type_default, login=LOGIN)})
 
     # создаём и запускаем поток, работающий с сетью
     get_data_thread = threading.Thread(target=get_data)

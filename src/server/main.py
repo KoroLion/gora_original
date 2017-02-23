@@ -54,12 +54,13 @@ class PlayerInfo:
     """!
     @brief Класс информации об игроке, хранящейся на сервере
     """
-    def __init__(self, position: Point, speed: Point, ip: str=''):
+    def __init__(self, position: Point, speed: Point, angle: int=50, ip: str='', skin: int=0):
         self.position = position
+        self.angle = angle
         self.speed = speed
         self.ip = ip
         self.speed_amount = 3
-        self.color = 0
+        self.skin = skin
 
     def update(self):
         self.position.x += self.speed.x
@@ -85,7 +86,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
             if data.get(J_COMMAND) == CONNECT:
                 print(token + ' (' + self.client_address[0] + ') connected!')
-                new_player = {token: PlayerInfo(Point(1, 1), Point(0, 0), self.client_address[0])}
+                new_player = {token: PlayerInfo(Point(1, 1), Point(0, 0),
+                                                ip=self.client_address[0],
+                                                skin=data.get(J_SKIN),
+                                                angle=data.get(J_ANGLE))
+                              }
                 players.update(new_player)
             elif command == GO_TOP:
                 players[token].speed.x = 0
@@ -122,18 +127,23 @@ class UDPHandler(socketserver.DatagramRequestHandler):
 
             if correct_data:
                 command = data.get(J_COMMAND)
-                token = data.get(J_TOKEN)
-                if command == DISCONNECT:
-                    print(token + ' (' + players[token].ip + ') disconnected!')
-                    server.disconnect_player(token)
-                if data.get(J_COMMAND) == GET_DATA:
+                cur_player_token = data.get(J_TOKEN)
+                if command == GET_DATA:
+                    angle = data.get(J_ANGLE)
                     j_players = []
                     for token in server.players:
+                        if token == cur_player_token:
+                            server.players[token].angle = angle
                         data = {J_TOKEN: token,
                                 J_POSITION_X: server.players[token].position.x,
-                                J_POSITION_Y: server.players[token].position.y}
+                                J_POSITION_Y: server.players[token].position.y,
+                                J_ANGLE: server.players[token].angle,
+                                J_SKIN: server.players[token].skin}
                         j_players.append(data)
                     self.request[1].sendto(json.dumps(j_players).encode(), self.client_address)
+                elif command == DISCONNECT:
+                    print(cur_player_token + ' (' + players[cur_player_token].ip + ') disconnected!')
+                    server.disconnect_player(cur_player_token)
 
 
 def main():

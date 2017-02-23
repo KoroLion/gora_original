@@ -59,6 +59,6 @@ class GameObject(BasicObject, sprite.Sprite):
 
 class Robot(GameObject):
 
-    def __init__(self, position, animation, token, angle=0):
+    def __init__(self, position, animation, angle=0, login=''):
         super().__init__(position, animation, angle)
-        self.token = token
+        self.login = login

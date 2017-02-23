@@ -10,8 +10,9 @@ from classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
 from classes.resources import Resources
 from classes.core import Core
 from classes.game import Game
+from classes.game_object import GameObject
 
-from src.helper_types import Size
+from src.helper_types import Size, Point
 
 pygame.init()
 
@@ -26,7 +27,9 @@ def main():
     """!
     @brief Поток отображения offline клиента
     """
-    game.player1.visible = True
+    player = GameObject(Point(0, 0), res.textures.wall_type_default)
+    player.visible = True
+    game.add_object(player)
     ## @brief Переменная, хранящая координаты мыши
     mouse_pos = (0, 0)  # type: list
 
@@ -36,24 +39,24 @@ def main():
                 main_form.terminate()
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
-                    go_top(game.player1)
+                    go_top(player)
                 if event.key == pygame.K_s:
-                    go_bottom(game.player1)
+                    go_bottom(player)
                 if event.key == pygame.K_d:
-                    go_right(game.player1)
+                    go_right(player)
                 if event.key == pygame.K_a:
-                    go_left(game.player1)
+                    go_left(player)
             elif event.type == pygame.MOUSEMOTION:
                 mouse_pos = event.pos
 
-        game.player1.texture.angle = get_angle(game.player1.position, mouse_pos, game.player1.size)
+        player.texture.angle = get_angle(player.position, mouse_pos, player.size)
 
         res.update()
         game.update()
         main_form.update()
 
 
-def get_angle(pl_pos: list, pos: list, size: Size) -> float:
+def get_angle(pl_pos: Point, pos: list, size: Size) -> float:
     """!
     @brief Возращает угол между мышью и объектом
 
