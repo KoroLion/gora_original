@@ -75,8 +75,6 @@ class TCPHandler(socketserver.BaseRequestHandler):
             data = data.decode()
             data = json.loads(data)
             cur_thread = threading.current_thread()
-            # print("Thread: {}".format(cur_thread))
-            # print("{} wrote: {}".format(self.client_address[0], data))
 
             if data.get(J_COMMAND) == GET_DATA:
                 j_players = []
@@ -131,6 +129,14 @@ class UDPHandler(socketserver.DatagramRequestHandler):
                     players[token].speed = Point(0, 0)
                     print(token + ' (' + players[token].ip + ') disconnected!')
                     players.pop(token)
+                if data.get(J_COMMAND) == GET_DATA:
+                    j_players = []
+                    for token in server.players:
+                        data = {J_TOKEN: token,
+                                J_POSITION_X: server.players[token].position.x,
+                                J_POSITION_Y: server.players[token].position.y}
+                        j_players.append(data)
+                    self.request[1].sendto(json.dumps(j_players).encode(), self.client_address)
 
 
 def main():
@@ -145,4 +151,5 @@ if __name__ == "__main__":
     print('*GORA server pre-alpha 0.1*')
     print('Initializing server...')
     server = ServerCore(IP, PORT)
+
     main()

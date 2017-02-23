@@ -55,7 +55,7 @@ class Client(object):
         data = {J_COMMAND: GET_DATA}
         data = json.dumps(data)
         try:
-            return net.tcp_send(data.encode())
+            return net.udp_send(data.encode())
         except ConnectionError:
             self.connected = False
             return ''
