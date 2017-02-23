@@ -58,7 +58,7 @@ class Client(object):
         data = {J_COMMAND: GET_DATA, J_TOKEN: TOKEN, J_ANGLE: self.angle}
         data = json.dumps(data)
         try:
-            recv = net.udp_send(data.encode())
+            recv = bytes(net.udp_send(data.encode()))
             return recv.decode()
         except ConnectionError:
             self.connected = False
