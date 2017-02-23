@@ -79,11 +79,26 @@ class TCPHandler(socketserver.BaseRequestHandler):
             data = data.decode()
             data = json.loads(data)
             cur_thread = threading.current_thread()
+            command = data.get(J_COMMAND)
+            token = data.get(J_TOKEN)
+            players = server.players
 
             if data.get(J_COMMAND) == CONNECT:
-                print(data[J_TOKEN] + ' (' + self.client_address[0] + ') connected!')
-                new_player = {data[J_TOKEN]: PlayerInfo(Point(1, 1), Point(0, 0), self.client_address[0])}
-                server.players.update(new_player)
+                print(token + ' (' + self.client_address[0] + ') connected!')
+                new_player = {token: PlayerInfo(Point(1, 1), Point(0, 0), self.client_address[0])}
+                players.update(new_player)
+            elif command == GO_TOP:
+                players[token].speed.x = 0
+                players[token].speed.y = -players[token].speed_amount
+            elif command == GO_BOTTOM:
+                players[token].speed.x = 0
+                players[token].speed.y = players[token].speed_amount
+            elif command == GO_LEFT:
+                players[token].speed.x = -players[token].speed_amount
+                players[token].speed.y = 0
+            elif command == GO_RIGHT:
+                players[token].speed.x = players[token].speed_amount
+                players[token].speed.y = 0
 
 
 class UDPHandler(socketserver.DatagramRequestHandler):
@@ -108,19 +123,7 @@ class UDPHandler(socketserver.DatagramRequestHandler):
             if correct_data:
                 command = data.get(J_COMMAND)
                 token = data.get(J_TOKEN)
-                if command == GO_TOP:
-                    players[token].speed.x = 0
-                    players[token].speed.y = -players[token].speed_amount
-                elif command == GO_BOTTOM:
-                    players[token].speed.x = 0
-                    players[token].speed.y = players[token].speed_amount
-                elif command == GO_LEFT:
-                    players[token].speed.x = -players[token].speed_amount
-                    players[token].speed.y = 0
-                elif command == GO_RIGHT:
-                    players[token].speed.x = players[token].speed_amount
-                    players[token].speed.y = 0
-                elif command == DISCONNECT:
+                if command == DISCONNECT:
                     print(token + ' (' + players[token].ip + ') disconnected!')
                     server.disconnect_player(token)
                 if data.get(J_COMMAND) == GET_DATA:

@@ -55,3 +55,10 @@ class GameObject(BasicObject, sprite.Sprite):
         # render if visible
         if self.visible:
             screen.blit(self.image, self.rect)
+
+
+class Robot(GameObject):
+
+    def __init__(self, position, animation, token, angle=0):
+        super().__init__(position, animation, angle)
+        self.token = token

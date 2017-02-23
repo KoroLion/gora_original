@@ -11,7 +11,7 @@ from classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
 from classes.resources import Resources
 from classes.core import Core
 from classes.game import Game
-from classes.game_object import GameObject
+from classes.game_object import Robot
 
 from classes.l_net import LNet
 
@@ -44,7 +44,7 @@ class Client(object):
     def send_command(self) -> bool:
         data = json.dumps({J_COMMAND: self.command, J_TOKEN: TOKEN})
         try:
-            net.udp_send(data.encode())
+            net.tcp_send(data.encode())
             self.command = 0
         except ConnectionError:
             self.connected = False
@@ -87,13 +87,23 @@ def get_data():
         data = client.get_data_from_server()
         if data:
             players = json.loads(data)
-            # вид:
+            # players ~=
             # [{'2': '67bac7074979ff6707e44a0536ab468d', '10': 1, '11': 1},
             # {'2': '67bac7074979ff6707e44a0536ab468d', '10': 1, '11': 1}]
 
+            server_tokens = []
+            for player in players:
+                server_tokens.append(player[J_TOKEN])
+            client_tokens = []
+            for token in game.players:
+                client_tokens.append(token)
+            for token in client_tokens:
+                if not (token in server_tokens):
+                    game.players.pop(token)
+
             for player in players:
                 if not game.players.get(player[J_TOKEN]):
-                    new_player = {player[J_TOKEN]: GameObject(Point(0, 0), res.textures.wall_type_default)}
+                    new_player = {player[J_TOKEN]: Robot(Point(0, 0), res.textures.wall_type_default, player[J_TOKEN])}
                     game.players.update(new_player)
 
                 new_position = Point(player[J_POSITION_X], player[J_POSITION_Y])
