@@ -3,7 +3,7 @@
 from pygame import sprite
 
 from .basic_object import BasicObject
-from .helper_types import Speed, Size
+from src.helper_types import Point, Size
 
 
 class GameObject(BasicObject, sprite.Sprite):
@@ -19,7 +19,7 @@ class GameObject(BasicObject, sprite.Sprite):
         super(GameObject, self).__init__(position, Size(20, 20), True)
         sprite.Sprite.__init__(self)
 
-        self.speed = Speed(0, 0)
+        self.speed = Point(0, 0)
         self.angle = angle
 
         self.texture = animation
