@@ -33,6 +33,12 @@ class ServerCore(object):
         server_udp_thread.daemon = True
         server_udp_thread.start()
 
+    def disconnect_player(self, token: str) -> bool:  # todo: обработка ошибок
+        self.players[token].position = Point(1, 1)
+        self.players[token].speed = Point(0, 0)
+        self.players.pop(token)
+        return True
+
     def terminate(self):
         self.server_tcp.shutdown()
         self.server_tcp.server_close()
@@ -76,15 +82,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             data = json.loads(data)
             cur_thread = threading.current_thread()
 
-            if data.get(J_COMMAND) == GET_DATA:
-                j_players = []
-                for token in server.players:
-                    data = {J_TOKEN: token,
-                            J_POSITION_X: server.players[token].position.x,
-                            J_POSITION_Y: server.players[token].position.y}
-                    j_players.append(data)
-                self.request.sendall(json.dumps(j_players).encode())
-            elif data.get(J_COMMAND) == CONNECT:
+            if data.get(J_COMMAND) == CONNECT:
                 print(data[J_TOKEN] + ' (' + self.client_address[0] + ') connected!')
                 new_player = {data[J_TOKEN]: PlayerInfo(Point(1, 1), Point(0, 0), self.client_address[0])}
                 server.players.update(new_player)
@@ -125,10 +123,8 @@ class UDPHandler(socketserver.DatagramRequestHandler):
                     players[token].speed.x = players[token].speed_amount
                     players[token].speed.y = 0
                 elif command == DISCONNECT:
-                    players[token].position = Point(1, 1)
-                    players[token].speed = Point(0, 0)
                     print(token + ' (' + players[token].ip + ') disconnected!')
-                    players.pop(token)
+                    server.disconnect_player(token)
                 if data.get(J_COMMAND) == GET_DATA:
                     j_players = []
                     for token in server.players:

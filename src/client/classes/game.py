@@ -23,6 +23,7 @@ class Game(object):
         # self.pacman = Pacman(Position(480, 660), self.res.animations.pacman)
         # self.pacman.visible = False
         # self.add_object(self.pacman)
+        self.players = {}
         self.player1 = GameObject(Point(0, 0), self.res.textures.wall_type_default)
         self.player1.visible = False
         self.add_object(self.player1)
