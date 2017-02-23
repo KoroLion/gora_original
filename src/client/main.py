@@ -91,21 +91,28 @@ def get_data():
             # [{'2': '67bac7074979ff6707e44a0536ab468d', '10': 1, '11': 1},
             # {'2': '67bac7074979ff6707e44a0536ab468d', '10': 1, '11': 1}]
 
+            # собираем токены сервера
             server_tokens = []
             for player in players:
                 server_tokens.append(player[J_TOKEN])
+
+            # собираем токены клиента
             client_tokens = []
             for token in game.players:
                 client_tokens.append(token)
+
+            # удаляем лишние объекты игрков на клиенте (которые отключились)
             for token in client_tokens:
                 if not (token in server_tokens):
                     game.players.pop(token)
 
             for player in players:
+                # если нет объекта для игрока - создаём его (которые подключились)
                 if not game.players.get(player[J_TOKEN]):
                     new_player = {player[J_TOKEN]: Robot(Point(0, 0), res.textures.wall_type_default, player[J_TOKEN])}
                     game.players.update(new_player)
 
+                # ставим игрока на новую позицию, полученную с сервера
                 new_position = Point(player[J_POSITION_X], player[J_POSITION_Y])
                 game.players[player[J_TOKEN]].position = new_position
 
