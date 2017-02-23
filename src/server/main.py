@@ -36,6 +36,9 @@ class ServerCore(object):
     def terminate(self):
         self.server_tcp.shutdown()
         self.server_tcp.server_close()
+        self.server_udp.shutdown()
+        self.server_udp.server_close()
+
         self.terminated = True
 
     def update_players(self):
@@ -72,6 +75,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             data = data.decode()
             data = json.loads(data)
             cur_thread = threading.current_thread()
+            # print("Thread: {}".format(cur_thread))
             # print("{} wrote: {}".format(self.client_address[0], data))
 
             if data.get(J_COMMAND) == GET_DATA:
@@ -128,10 +132,6 @@ class UDPHandler(socketserver.DatagramRequestHandler):
                     print(token + ' (' + players[token].ip + ') disconnected!')
                     players.pop(token)
 
-print('*GORA server pre-alpha 0.1*')
-print('Initializing server...')
-server = ServerCore(IP, PORT)
-
 
 def main():
     print('Starting server at {}:{}...'.format(server.ip, server.port))
@@ -142,4 +142,7 @@ def main():
         server.update_players()
 
 if __name__ == "__main__":
+    print('*GORA server pre-alpha 0.1*')
+    print('Initializing server...')
+    server = ServerCore(IP, PORT)
     main()
