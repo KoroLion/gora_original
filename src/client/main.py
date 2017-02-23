@@ -11,6 +11,7 @@ from classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
 from classes.resources import Resources
 from classes.core import Core
 from classes.game import Game
+from classes.game_object import GameObject
 
 from classes.l_net import LNet
 
@@ -90,26 +91,13 @@ def get_data():
             # [{'2': '67bac7074979ff6707e44a0536ab468d', '10': 1, '11': 1},
             # {'2': '67bac7074979ff6707e44a0536ab468d', '10': 1, '11': 1}]
 
-            game.player1.visible = False
-            game.player2.visible = False
-            game.player3.visible = False
-            game.player4.visible = False
-            n = 1
             for player in players:
+                if not game.players.get(player[J_TOKEN]):
+                    new_player = {player[J_TOKEN]: GameObject(Point(0, 0), res.textures.wall_type_default)}
+                    game.players.update(new_player)
+
                 new_position = Point(player[J_POSITION_X], player[J_POSITION_Y])
-                if n == 1:
-                    game.player1.position = new_position
-                    game.player1.visible = True
-                elif n == 2:
-                    game.player2.position = new_position
-                    game.player2.visible = True
-                elif n == 3:
-                    game.player3.position = new_position
-                    game.player3.visible = True
-                elif n == 4:
-                    game.player4.position = new_position
-                    game.player4.visible = True
-                n += 1
+                game.players[player[J_TOKEN]].position = new_position
 
         sleep(0.05)
 

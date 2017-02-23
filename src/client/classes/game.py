@@ -24,18 +24,6 @@ class Game(object):
         # self.pacman.visible = False
         # self.add_object(self.pacman)
         self.players = {}
-        self.player1 = GameObject(Point(0, 0), self.res.textures.wall_type_default)
-        self.player1.visible = False
-        self.add_object(self.player1)
-        self.player2 = GameObject(Point(0, 0), self.res.textures.player2)
-        self.player2.visible = False
-        self.add_object(self.player2)
-        self.player3 = GameObject(Point(0, 0), self.res.textures.wall_type_default)
-        self.player3.visible = False
-        self.add_object(self.player3)
-        self.player4 = GameObject(Point(0, 0), self.res.textures.wall_type_default)
-        self.player4.visible = False
-        self.add_object(self.player4)
 
     def new_game(self):
         pass
@@ -56,6 +44,8 @@ class Game(object):
         if self.visible:
             for obj in self.objects:
                 obj.render(screen)
+            for player in self.players:
+                self.players[player].render(screen)
 
     @staticmethod
     def sprite_group_collide(sprite, group):
