@@ -18,7 +18,7 @@ from classes.l_net import LNet
 
 IP = '127.0.0.1'
 LOGIN = 'KoroLion'
-SKIN = SKIN_BLUE
+SKIN = SKIN_GREEN
 
 TOKEN = hashlib.md5(str(time()).encode() + LOGIN.encode()).hexdigest()
 
@@ -58,7 +58,8 @@ class Client(object):
         data = {J_COMMAND: GET_DATA, J_TOKEN: TOKEN, J_ANGLE: self.angle}
         data = json.dumps(data)
         try:
-            return net.udp_send(data.encode())
+            recv = net.udp_send(data.encode())
+            return recv.decode()
         except ConnectionError:
             self.connected = False
             return ''
@@ -194,8 +195,6 @@ if __name__ == "__main__":
     main_form.add_object(game)
 
     net = LNet(IP, PORT)
-
-    # game.players.update({TOKEN: Robot(Point(0, 0), res.textures.wall_type_default, login=LOGIN)})
 
     # создаём и запускаем поток, работающий с сетью
     get_data_thread = threading.Thread(target=get_data)

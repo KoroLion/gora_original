@@ -7,7 +7,7 @@ class LNet(object):
     """!
     @brief Класс для простой работы с сетью
     """
-    def __init__(self, ip: str, port: int, timeout: float=0.1):
+    def __init__(self, ip: str, port: int, timeout: float=0.5):
         self.ip = ip
         self.port = port
         self.timeout = timeout
