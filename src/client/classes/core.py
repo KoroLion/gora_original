@@ -39,17 +39,6 @@ class Core(object):
         """
         self.objects.append(form_object)
 
-    @staticmethod
-    def get_block_position(position):
-        """
-        Rounds the position
-        :param position: helper_types.Position
-        :return: helper_types.Position
-        """
-        position.x -= position.x % BLOCK_WIDTH
-        position.y -= position.y % BLOCK_WIDTH
-        return position
-
     def get_object(self, obj_position, direction):
         """
         (возвращает объект на соседнем (direction) блоке от position)

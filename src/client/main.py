@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import threading
 from time import sleep, time
 import hashlib
@@ -75,7 +74,10 @@ def get_data():
     @brief Поток получения информации о состоянии игры с сервера
     """
     while not client.connected:
-        client.connect()
+        if not client.connect():
+            pass
+        #print('#ERROR: connection error')
+        #sleep(1)
 
     while not main_form.terminated and client.connected:
         if client.command != 0:

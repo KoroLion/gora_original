@@ -68,41 +68,11 @@ class Game(object):
         temp = pygame.sprite.Group(sprite)
         return pygame.sprite.groupcollide(temp, group, False, False)
 
-    def get_object(self, obj_position, direction):
-        """
-        (возвращает объект на соседнем (direction) блоке от position)
-        :param position: helper_types.Position
-        :param direction: int
-        :return GameObject
-        """
-        #position = Position(obj_position.x, obj_position.y)
-
-        #for obj in self.objects:
-        #    if direction == 0:
-        #        if (obj.position.x == position.x) and (obj.position.y == position.y - constants.BLOCK_HEIGHT):
-        #            return obj
-        #    elif direction == 1:
-        #        if (obj.position.x == position.x) and (obj.position.y == position.y + constants.BLOCK_HEIGHT):
-        #            return obj
-        #    elif direction == 2:
-        #        if (obj.position.x == position.x - constants.BLOCK_WIDTH) and (obj.position.y == position.y):
-        #            return obj
-        #    else:
-        #        if (obj.position.x == position.x + constants.BLOCK_WIDTH) and (obj.position.y == position.y):
-        #            return obj
-
     def moving(self, entity):
-        pass
-
-    def eating_seeds(self):
-        pass
-
-    def ghosts_ai(self):
         pass
 
     def update(self):
         """Game update function"""
         # entities' collisions with walls
         # pacman's collision with ghosts and the end of game
-
         pass

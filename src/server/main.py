@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import socketserver
 import threading
 from time import sleep
