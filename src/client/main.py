@@ -31,17 +31,42 @@ class Client(object):
         self.connected = False
 
     def connect(self) -> bool:
+        data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN}
+        data = json.dumps(data)
         try:
-            data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN}
-            data = json.dumps(data)
             net.tcp_send(data.encode())
             self.connected = True
-        except ConnectionRefusedError:
+        except ConnectionError:
             self.connected = False
 
         return self.connected
 
+    def send_command(self) -> bool:
+        data = json.dumps({J_COMMAND: self.command, J_TOKEN: TOKEN})
+        try:
+            net.udp_send(data.encode())
+            self.command = 0
+        except ConnectionError:
+            self.connected = False
+
+        return self.connected
+
+    def get_data_from_server(self) -> str:
+        data = {J_COMMAND: GET_DATA}
+        data = json.dumps(data)
+        try:
+            return net.tcp_send(data.encode())
+        except ConnectionError:
+            self.connected = False
+            return ''
+
     def disconnect(self):
+        try:
+            data = json.dumps({J_COMMAND: DISCONNECT, J_TOKEN: TOKEN})
+            net.udp_send(data.encode())
+        except ConnectionError:
+            pass
+
         self.connected = False
 
 
@@ -53,15 +78,10 @@ def get_data():
         client.connect()
 
     while not main_form.terminated and client.connected:
-        # threading.Lock().acquire() ?
         if client.command != 0:
-            data = json.dumps({J_COMMAND: client.command, J_TOKEN: TOKEN})
-            net.udp_send(data.encode())
-            client.command = 0
+            client.send_command()
 
-        data = {J_COMMAND: GET_DATA}
-        data = json.dumps(data)
-        data = net.tcp_send(data.encode())
+        data = client.get_data_from_server()
         if data:
             players = json.loads(data)
             # вид:
@@ -88,9 +108,7 @@ def get_data():
                     game.player4.position = new_position
                     game.player4.visible = True
                 n += 1
-            # print('{}:{}'.format(data.position.x, data.position.y))
 
-        # threading.Lock().release() ?
         sleep(0.05)
 
 
@@ -117,8 +135,7 @@ def main():
         main_form.update()
 
     if client.connected:
-        data = json.dumps({J_COMMAND: DISCONNECT, J_TOKEN: TOKEN})
-        net.udp_send(data.encode())
+        client.disconnect()
 
 
 if __name__ == "__main__":
@@ -131,7 +148,6 @@ if __name__ == "__main__":
     main_form = Core("GORA pre-alpha 0.1", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
     game = Game(res)
     main_form.add_object(game)
-
 
     net = LNet(IP, PORT)
 
