@@ -34,7 +34,7 @@ class Client(object):
         self.connected = False
 
     def connect(self) -> bool:
-        data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN}
+        data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN, J_SKIN: SKIN}
         data = json.dumps(data)
         try:
             net.tcp_send(data.encode())
@@ -112,7 +112,10 @@ def get_data():
             for player in players:
                 # если нет объекта для игрока - создаём его (которые подключились)
                 if not game.players.get(player[J_TOKEN]):
-                    new_player = {player[J_TOKEN]: Robot(Point(0, 0), res.textures.wall_type_default)}
+                    if player[J_SKIN] == SKIN_BLUE:
+                        new_player = {player[J_TOKEN]: Robot(Point(0, 0), res.textures.robot_blue)}
+                    else:
+                        new_player = {player[J_TOKEN]: Robot(Point(0, 0), res.textures.robot_green)}
                     game.players.update(new_player)
 
                 # ставим игрока на новую позицию, полученную с сервера
@@ -123,7 +126,7 @@ def get_data():
         sleep(0.05)
 
 
-def get_angle(pl_pos: Point, pos: list, size: Size) -> float:
+def get_angle(pl_pos: Point, size: Size, pos: list) -> float:
     """!
     @brief Возращает угол между мышью и объектом
 
@@ -168,8 +171,8 @@ def main():
             elif event.type == pygame.MOUSEMOTION:
                 mouse_pos = event.pos
 
-        # game.players[TOKEN].angle = get_angle(game.players[TOKEN].position, mouse_pos, game.players[TOKEN].size)
-        client.angle = get_angle(game.players[TOKEN].position, mouse_pos, game.players[TOKEN].size)
+        if game.players.get(TOKEN):
+            client.angle = get_angle(game.players.get(TOKEN).position, game.players[TOKEN].size, mouse_pos)
 
         res.update()
         game.update()
@@ -192,7 +195,7 @@ if __name__ == "__main__":
 
     net = LNet(IP, PORT)
 
-    game.players.update({TOKEN: Robot(Point(0, 0), res.textures.wall_type_default, login=LOGIN)})
+    # game.players.update({TOKEN: Robot(Point(0, 0), res.textures.wall_type_default, login=LOGIN)})
 
     # создаём и запускаем поток, работающий с сетью
     get_data_thread = threading.Thread(target=get_data)

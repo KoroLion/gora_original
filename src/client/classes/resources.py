@@ -55,8 +55,8 @@ class Textures(object):
     """Class that stores textures"""
 
     def __init__(self):
-        self.wall_type_default = Texture("images/wall/textures/wall_default.png")
-        self.player2 = Texture("images/wall/textures/player2.png")
+        self.robot_blue = Texture("images/robots/textures/robot_blue.png")
+        self.robot_green = Texture("images/robots/textures/robot_green.png")
 
         self.seed = Texture("images/seed.png")
 
