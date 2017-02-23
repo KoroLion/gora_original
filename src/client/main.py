@@ -101,7 +101,7 @@ def get_data():
             for token in game.players:
                 client_tokens.append(token)
 
-            # удаляем лишние объекты игрков на клиенте (которые отключились)
+            # удаляем лишние объекты игроков на клиенте (которые отключились)
             for token in client_tokens:
                 if not (token in server_tokens):
                     game.players.pop(token)
