@@ -30,6 +30,7 @@ class Client(object):
 
     def __init__(self):
         self.command = 0
+        self.angle = 0
         self.connected = False
 
     def connect(self) -> bool:
@@ -54,7 +55,7 @@ class Client(object):
         return self.connected
 
     def get_data_from_server(self) -> str:
-        data = {J_COMMAND: GET_DATA, J_TOKEN: TOKEN, J_ANGLE: game.players.get(TOKEN).angle}
+        data = {J_COMMAND: GET_DATA, J_TOKEN: TOKEN, J_ANGLE: self.angle}
         data = json.dumps(data)
         try:
             return net.udp_send(data.encode())
@@ -118,7 +119,6 @@ def get_data():
                 new_position = Point(player[J_POSITION_X], player[J_POSITION_Y])
                 game.players[player[J_TOKEN]].position = new_position
                 game.players[player[J_TOKEN]].angle = player[J_ANGLE]
-                game.players[player[J_TOKEN]].texture.angle = player[J_ANGLE]
 
         sleep(0.05)
 
@@ -151,8 +151,8 @@ def main():
     """!
     @brief Поток отображения клиента
     """
+    mouse_pos = (0, 0)
     while not main_form.terminated:
-        mouse_pos = (0, 0)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 main_form.terminate()
@@ -168,7 +168,8 @@ def main():
             elif event.type == pygame.MOUSEMOTION:
                 mouse_pos = event.pos
 
-        game.players[TOKEN].angle = get_angle(game.players[TOKEN].position, mouse_pos, game.players[TOKEN].size)
+        # game.players[TOKEN].angle = get_angle(game.players[TOKEN].position, mouse_pos, game.players[TOKEN].size)
+        client.angle = get_angle(game.players[TOKEN].position, mouse_pos, game.players[TOKEN].size)
 
         res.update()
         game.update()
