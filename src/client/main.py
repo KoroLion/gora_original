@@ -32,8 +32,8 @@ class CoreData(object):
 
 
 class PlayerInfo(object):
-    """
-    Класс информации об игроке, хранящейся на сервере
+    """!
+    @brief Класс информации об игроке, хранящейся на сервере
     """
     def __init__(self, position, speed):
         self.position = position
@@ -44,20 +44,10 @@ class PlayerInfo(object):
         self.position.x += self.speed.x
         self.position.y += self.speed.y
 
-pygame.init()
-
-res = Resources(sounds_volume=0.5)
-
-main_form = Core("GORA pre-alpha 0.1", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
-game = Game(res)
-main_form.add_object(game)
-
-net = LNet(IP, PORT, 0.1)
-
 
 def get_data():
-    """
-    Поток получения информации о состоянии игры с сервера
+    """!
+    @brief Поток получения информации о состоянии игры с сервера
     """
     try:
         data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN}
@@ -110,14 +100,9 @@ def get_data():
         sleep(0.05)
 
 
-get_data_thread = threading.Thread(target=get_data)
-get_data_thread.daemon = True
-get_data_thread.start()
-
-
 def main():
-    """
-    Поток отображения клиента
+    """!
+    @brief Поток отображения клиента
     """
     while not main_form.terminated:
         for event in pygame.event.get():
@@ -143,4 +128,19 @@ def main():
 
 
 if __name__ == "__main__":
+    pygame.init()
+
+    res = Resources(sounds_volume=0.5)
+
+    main_form = Core("GORA pre-alpha 0.1", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
+    game = Game(res)
+    main_form.add_object(game)
+
+    net = LNet(IP, PORT)
+
+    # создаём и запускаем поток, работающий с сетью
+    get_data_thread = threading.Thread(target=get_data)
+    get_data_thread.daemon = True
+    get_data_thread.start()
+
     main()
