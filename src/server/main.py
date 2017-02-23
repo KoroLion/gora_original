@@ -130,16 +130,17 @@ class UDPHandler(socketserver.DatagramRequestHandler):
                 cur_player_token = data.get(J_TOKEN)
                 if command == GET_DATA:
                     angle = data.get(J_ANGLE)
+
+                    server.players[cur_player_token].angle = angle
                     j_players = []
                     for token in server.players:
-                        if token == cur_player_token:
-                            server.players[token].angle = angle
                         data = {J_TOKEN: token,
                                 J_POSITION_X: server.players[token].position.x,
                                 J_POSITION_Y: server.players[token].position.y,
                                 J_ANGLE: server.players[token].angle,
                                 J_SKIN: server.players[token].skin}
                         j_players.append(data)
+
                     self.request[1].sendto(json.dumps(j_players).encode(), self.client_address)
                 elif command == DISCONNECT:
                     print(cur_player_token + ' (' + players[cur_player_token].ip + ') disconnected!')
