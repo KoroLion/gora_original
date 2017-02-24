@@ -81,7 +81,7 @@ def tcp_handle(reader, writer):
 
         if data.get(J_COMMAND) == CONNECT:
             print(token + ' (' + addr[0] + ') connected!')
-            new_player = {token: PlayerInfo(Point(1, 1), Point(0, 0),
+            new_player = {token: PlayerInfo(Point(100, 100), Point(0, 0),
                                             ip=addr[0],
                                             skin=data.get(J_SKIN),
                                             angle=data.get(J_ANGLE))

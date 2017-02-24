@@ -122,31 +122,31 @@ def get_data():
                 game.players[player[J_TOKEN]].position = new_position
                 game.players[player[J_TOKEN]].angle = player[J_ANGLE]
 
-        sleep(0.05)
+        sleep(0.01)
 
 
-def get_angle(pl_pos: Point, size: Size, pos: list) -> float:
+def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
     """!
     @brief Возращает угол между мышью и объектом
 
+    @param pl_pos: Point(координаты игрока)
     @param size: Size(helper_types)
-    @param pl_pos: list(координаты игрока)
-    @param pos: list(координаты мыши)
+    @param m_pos: Point(координаты мыши)
     @return: float(градус поворота)
     """
-    x = pos[0] + size.width - pl_pos.x
-    y = pl_pos.y - pos[1] + size.height
-    if x != 0:
-        angle = math.atan(y / x) * 180 / 3.14
-        if x > 0:
-            angle += 270
-            return angle
+    x = pl_pos.x + size.width / 2 - m_pos.x
+    y = pl_pos.y + size.height / 2 - m_pos.y
+    if x == 0:
+        if y >= 0:
+            return 90
         else:
-            angle += 90
-            return angle
+            return 270
     else:
-        angle = 0
-        return angle
+        angle = math.degrees(math.atan(y / x))
+        if x > 0:
+            return 180 - angle
+        else:
+            return -angle
 
 
 def main():
@@ -173,7 +173,7 @@ def main():
                 mouse_pos = event.pos
 
         if game.players.get(TOKEN):
-            client.angle = get_angle(game.players.get(TOKEN).position, game.players[TOKEN].size, mouse_pos)
+            client.angle = get_angle(game.players.get(TOKEN).position, game.players[TOKEN].size, Point(mouse_pos[0], mouse_pos[1]))
 
         res.update()
         game.update()

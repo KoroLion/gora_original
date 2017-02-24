@@ -16,7 +16,7 @@ class GameObject(BasicObject, sprite.Sprite):
         :param size: pacman.helper_types.Size
         :param texture: pacman.resources.Animation
         """
-        super(GameObject, self).__init__(position, Size(20, 20), True)
+        super(GameObject, self).__init__(position, Size(40, 40), True)
         sprite.Sprite.__init__(self)
 
         self.speed = Point(0, 0)
