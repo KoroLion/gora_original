@@ -3,7 +3,7 @@ from time import sleep, time
 import hashlib
 import pygame
 import math
-import json
+import ujson as json
 
 from src.shared_constants import *
 from src.helper_types import Size, Point
@@ -37,7 +37,7 @@ class Client(object):
         data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN, J_SKIN: SKIN}
         data = json.dumps(data)
         try:
-            net.tcp_send(data.encode())
+            net.tcp_send(data)
             self.connected = True
         except ConnectionError:
             self.connected = False
@@ -47,7 +47,7 @@ class Client(object):
     def send_command(self) -> bool:
         data = json.dumps({J_COMMAND: self.command, J_TOKEN: TOKEN})
         try:
-            net.tcp_send(data.encode())
+            net.tcp_send(data)
             self.command = 0
         except ConnectionError:
             self.connected = False
@@ -78,11 +78,9 @@ def get_data():
     """!
     @brief Поток получения информации о состоянии игры с сервера
     """
+
     while not client.connected:
-        if not client.connect():
-            pass
-        #print('#ERROR: connection error')
-        #sleep(1)
+        client.connect()
 
     while not main_form.terminated and client.connected:
         if client.command != 0:
@@ -156,7 +154,9 @@ def main():
     @brief Поток отображения клиента
     """
     mouse_pos = (0, 0)
+
     while not main_form.terminated:
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 main_form.terminate()

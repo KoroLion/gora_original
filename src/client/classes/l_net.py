@@ -1,4 +1,6 @@
 import socket
+import asyncio
+from time import sleep
 
 PACKET_SIZE = 512
 
@@ -11,14 +13,34 @@ class LNet(object):
         self.ip = ip
         self.port = port
         self.timeout = timeout
+        self.loop = asyncio.get_event_loop()
 
-    def tcp_send(self, data: str) -> str:
+    def tcp_sendg(self, data: str) -> str:
         # IPv4, потокориентированный, TCP
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=socket.IPPROTO_TCP)
         sock.connect((self.ip, self.port))
-        sock.sendall(data)
+        f = sock.makefile()
+        f.write(('\x04' + data))
+        f.flush()
+        #sock.sendall(data.encode())
         data = sock.recv(PACKET_SIZE)
         sock.close()
+        return data
+
+    def tcp_send(self, data: str) -> str:
+        @asyncio.coroutine
+        def tcp_echo_client(message, loop):
+            reader, writer = yield from asyncio.open_connection(self.ip, self.port, loop=loop)
+
+            writer.write(message.encode())
+            writer.write_eof()
+
+            recv = yield from reader.read()
+            writer.close()
+
+            return recv.decode()
+
+        data = self.loop.run_until_complete(tcp_echo_client(data, self.loop))
         return data
 
     def udp_send(self, data: str) -> str:
