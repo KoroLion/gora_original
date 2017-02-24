@@ -27,7 +27,7 @@ def main():
     """!
     @brief Поток отображения offline клиента
     """
-    player = GameObject(Point(0, 0), res.textures.wall_type_default)
+    player = GameObject(Point(0, 0), res.textures.robot_blue)
     player.visible = True
     game.add_object(player)
     ## @brief Переменная, хранящая координаты мыши
