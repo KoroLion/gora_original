@@ -7,7 +7,7 @@ import ujson as json
 from src.helper_types import Point
 from src.shared_constants import *
 
-IP = ''
+IP = '0.0.0.0'
 
 
 class ServerCore(object):
@@ -17,20 +17,21 @@ class ServerCore(object):
     """
     def __init__(self, ip: str, port: int):
         # self.server_tcp = socketserver.ThreadingTCPServer((ip, port), TCPHandler)
-        self.server_udp = socketserver.ThreadingUDPServer((ip, port), UDPHandler)
+        # self.server_udp = socketserver.ThreadingUDPServer((ip, port), UDPHandler)
 
-        self.ip, self.port = self.server_udp.server_address
+        # self.ip, self.port = self.server_udp.server_address
         self.players = {}
         self.terminated = False
 
     def start_server(self):
+        pass
         # server_tcp_thread = threading.Thread(target=self.server_tcp.serve_forever)
         # server_tcp_thread.daemon = True
         # server_tcp_thread.start()
 
-        server_udp_thread = threading.Thread(target=self.server_udp.serve_forever)
-        server_udp_thread.daemon = True
-        server_udp_thread.start()
+        # server_udp_thread = threading.Thread(target=self.server_udp.serve_forever)
+        # server_udp_thread.daemon = True
+        # server_udp_thread.start()
 
     def disconnect_player(self, token: str) -> bool:  # todo: обработка ошибок
         self.players[token].position = Point(1, 1)
@@ -41,8 +42,8 @@ class ServerCore(object):
     def terminate(self):
         # self.server_tcp.shutdown()
         # self.server_tcp.server_close()
-        self.server_udp.shutdown()
-        self.server_udp.server_close()
+        # self.server_udp.shutdown()
+        # self.server_udp.server_close()
 
         self.terminated = True
 
@@ -68,11 +69,12 @@ class PlayerInfo:
         self.position.y += self.speed.y
 
 
-@asyncio.coroutine
-def tcp_handle(reader, writer):
-    data = yield from reader.read()  # read(100) - читать 100 байт, иначе до EOF
-    addr = writer.get_extra_info('peername')
-    if data:
+def tcp_async():
+    @asyncio.coroutine
+    def tcp_handle(reader, writer):
+        data = yield from reader.read()  # read(100) - читать 100 байт, иначе до EOF
+        addr = writer.get_extra_info('peername')
+
         data = data.decode()
         data = json.loads(data)
         command = data.get(J_COMMAND)
@@ -102,29 +104,39 @@ def tcp_handle(reader, writer):
             players[token].speed.x = players[token].speed_amount
             players[token].speed.y = 0
 
-    writer.close()
+        writer.close()
 
-    # data = data.decode()
-    # writer.write(data.encode())
-    # writer.close()
+    loop = asyncio.new_event_loop()
+    coro = asyncio.start_server(tcp_handle, '', PORT, loop=loop)
+    tcp_server = loop.run_until_complete(coro)
+
+    # Serve requests until Ctrl+C is pressed
+    print('Serving on {}'.format(tcp_server.sockets[0].getsockname()))
+    try:
+        loop.run_forever()
+        pass
+    except KeyboardInterrupt:
+        pass
+
+    # Close the server
+    tcp_server.close()
+    loop.run_until_complete(tcp_server.wait_closed())
+    loop.close()
 
 
-class UDPHandler(socketserver.DatagramRequestHandler):
-    """!
-    @brief поток обработчика UDP запросов
-    """
+def udp_async():
+    class EchoServerProtocol():
+        def connection_made(self, transport):
+            self.transport = transport
 
-    def handle(self):
-        players = server.players
-        cur_thread = threading.current_thread()
-        # self.request это TCP сокет подключённый к клиенту
-        data = self.request[0]
-        if data:
+        def datagram_received(self, data, addr):
             data = data.decode()
+
+            players = server.players
             try:
                 data = json.loads(data)
                 correct_data = True
-            except json.decoder.JSONDecodeError:
+            except json:
                 print('#ERROR: incorrect format of input data')
                 correct_data = False
 
@@ -144,16 +156,29 @@ class UDPHandler(socketserver.DatagramRequestHandler):
                                 J_SKIN: server.players[token].skin}
                         j_players.append(data)
 
-                    self.request[1].sendto(json.dumps(j_players).encode(), self.client_address)
+                    self.transport.sendto(json.dumps(j_players).encode(), addr)
                 elif command == DISCONNECT:
                     print(cur_player_token + ' (' + players[cur_player_token].ip + ') disconnected!')
                     server.disconnect_player(cur_player_token)
+                    self.transport.sendto('OK'.encode(), addr)
+
+    loop = asyncio.new_event_loop()
+    print("Starting UDP server")
+    # One protocol instance will be created to serve all client requests
+    listen = loop.create_datagram_endpoint(
+        EchoServerProtocol, local_addr=(IP, PORT))
+    transport, protocol = loop.run_until_complete(listen)
+
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+
+    transport.close()
+    loop.close()
 
 
 def main():
-    print('Starting server at {}:{}...'.format(server.ip, server.port))
-    server.start_server()
-    print('Server started at {}:{}!'.format(server.ip, server.port))
     while not server.terminated:
         sleep(0.05)
         server.update_players()
@@ -163,23 +188,15 @@ if __name__ == "__main__":
     print('Initializing server...')
     server = ServerCore(IP, PORT)
 
-    main_thread = threading.Thread(target=main)
-    main_thread.start()
+    print('Starting TCP thread...')
+    tcp_thread = threading.Thread(target=tcp_async)
+    tcp_thread.start()
 
-    loop = asyncio.get_event_loop()
-    coro = asyncio.start_server(tcp_handle, '', PORT, loop=loop)
-    tcp_server = loop.run_until_complete(coro)
+    print('Starting UDP thread...')
+    udp_thread = threading.Thread(target=udp_async)
+    udp_thread.start()
 
-    # Serve requests until Ctrl+C is pressed
-    print('Serving on {}'.format(tcp_server.sockets[0].getsockname()))
-    try:
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
+    # cur_thread = threading.current_thread()
 
-    # Close the server
-    tcp_server.close()
-    loop.run_until_complete(tcp_server.wait_closed())
-    loop.close()
-
+    print('Starting world...')
     main()

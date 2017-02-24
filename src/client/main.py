@@ -4,6 +4,7 @@ import hashlib
 import pygame
 import math
 import ujson as json
+import asyncio
 
 from src.shared_constants import *
 from src.helper_types import Size, Point
@@ -58,8 +59,7 @@ class Client(object):
         data = {J_COMMAND: GET_DATA, J_TOKEN: TOKEN, J_ANGLE: self.angle}
         data = json.dumps(data)
         try:
-            recv = bytes(net.udp_send(data.encode()))
-            return recv.decode()
+            return net.udp_send(data)
         except ConnectionError:
             self.connected = False
             return ''
@@ -67,7 +67,7 @@ class Client(object):
     def disconnect(self):
         try:
             data = json.dumps({J_COMMAND: DISCONNECT, J_TOKEN: TOKEN})
-            net.udp_send(data.encode())
+            net.udp_send(data)
         except ConnectionError:
             pass
 
@@ -78,6 +78,8 @@ def get_data():
     """!
     @brief Поток получения информации о состоянии игры с сервера
     """
+
+    asyncio.set_event_loop(asyncio.new_event_loop())
 
     while not client.connected:
         client.connect()
@@ -122,7 +124,7 @@ def get_data():
                 game.players[player[J_TOKEN]].position = new_position
                 game.players[player[J_TOKEN]].angle = player[J_ANGLE]
 
-        sleep(0.01)
+        sleep(1)
 
 
 def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
