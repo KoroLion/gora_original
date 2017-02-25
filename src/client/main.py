@@ -1,4 +1,5 @@
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from time import sleep, time
 import hashlib
 import pygame
@@ -59,28 +60,25 @@ class Client(object):
         data = {J_COMMAND: GET_DATA, J_TOKEN: TOKEN, J_ANGLE: self.angle}
         data = json.dumps(data)
         try:
-            return net.udp_send(data)
+            return net.tcp_send(data)
         except ConnectionError:
             self.connected = False
             return ''
 
-    def disconnect(self):
+    def disconnect(self, loop):
         try:
             data = json.dumps({J_COMMAND: DISCONNECT, J_TOKEN: TOKEN})
-            net.udp_send(data)
+            net.tcp_send(data)
         except ConnectionError:
             pass
 
         self.connected = False
 
 
-def get_data():
+def get_data(loop):
     """!
     @brief Поток получения информации о состоянии игры с сервера
     """
-
-    asyncio.set_event_loop(asyncio.new_event_loop())
-
     while not client.connected:
         client.connect()
 
@@ -124,7 +122,7 @@ def get_data():
                 game.players[player[J_TOKEN]].position = new_position
                 game.players[player[J_TOKEN]].angle = player[J_ANGLE]
 
-        sleep(1)
+        sleep(0.01)
 
 
 def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
@@ -155,6 +153,8 @@ def main():
     """!
     @brief Поток отображения клиента
     """
+    loop = asyncio.new_event_loop()
+
     mouse_pos = (0, 0)
 
     while not main_form.terminated:
@@ -182,11 +182,13 @@ def main():
         main_form.update()
 
     if client.connected:
-        client.disconnect()
+        client.disconnect(loop)
 
 
 if __name__ == "__main__":
     pygame.init()
+
+    asyncio_loop = asyncio.get_event_loop()
 
     client = Client()
 
@@ -199,8 +201,8 @@ if __name__ == "__main__":
     net = LNet(IP, PORT)
 
     # создаём и запускаем поток, работающий с сетью
-    get_data_thread = threading.Thread(target=get_data)
-    get_data_thread.daemon = True
-    get_data_thread.start()
+    print('Starting get_data thread...')
+    executor = ThreadPoolExecutor(max_workers=1)
+    asyncio_loop.run_in_executor(executor, get_data, asyncio_loop)
 
     main()
