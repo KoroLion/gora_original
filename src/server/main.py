@@ -103,7 +103,7 @@ def tcp_async(loop):
                 writer.write('OK'.encode())
                 writer.write_eof()
             elif command == GET_DATA:
-                angle = data.get(J_ANGLE)
+                angle = round(data.get(J_ANGLE))
 
                 server.players[cur_player_token].angle = angle
                 j_players = []
@@ -111,7 +111,7 @@ def tcp_async(loop):
                     data = {J_TOKEN: token,
                             J_POSITION_X: server.players[token].position.x,
                             J_POSITION_Y: server.players[token].position.y,
-                            J_ANGLE: round(server.players[token].angle),
+                            J_ANGLE: server.players[token].angle,
                             J_SKIN: server.players[token].skin}
                     j_players.append(data)
 
@@ -145,11 +145,8 @@ def tcp_async(loop):
 
 def main():
     while not server.terminated:
-        sleep(1)
+        sleep(0.05)
         server.update_players()
-        for player in server.players:
-            print(server.players[player].angle)
-        print('----')
 
 if __name__ == "__main__":
     asyncio_loop = asyncio.get_event_loop()
