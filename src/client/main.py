@@ -1,4 +1,3 @@
-import threading
 from concurrent.futures import ThreadPoolExecutor
 from time import sleep, time
 import hashlib
@@ -65,7 +64,7 @@ class Client(object):
             self.connected = False
             return ''
 
-    def disconnect(self, loop):
+    def disconnect(self):
         try:
             data = json.dumps({J_COMMAND: DISCONNECT, J_TOKEN: TOKEN})
             net.tcp_send(data)
@@ -79,6 +78,7 @@ def get_data(loop):
     """!
     @brief Поток получения информации о состоянии игры с сервера
     """
+
     while not client.connected:
         client.connect()
 
@@ -153,8 +153,6 @@ def main():
     """!
     @brief Поток отображения клиента
     """
-    loop = asyncio.new_event_loop()
-
     mouse_pos = (0, 0)
 
     while not main_form.terminated:
@@ -182,7 +180,7 @@ def main():
         main_form.update()
 
     if client.connected:
-        client.disconnect(loop)
+       client.disconnect()
 
 
 if __name__ == "__main__":
@@ -190,6 +188,7 @@ if __name__ == "__main__":
 
     asyncio_loop = asyncio.get_event_loop()
 
+    net = LNet(IP, PORT)
     client = Client()
 
     res = Resources(sounds_volume=0.5)
@@ -197,8 +196,6 @@ if __name__ == "__main__":
     main_form = Core("GORA pre-alpha 0.1", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
     game = Game(res)
     main_form.add_object(game)
-
-    net = LNet(IP, PORT)
 
     # создаём и запускаем поток, работающий с сетью
     print('Starting get_data thread...')

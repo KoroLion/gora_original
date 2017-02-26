@@ -13,9 +13,9 @@ class LNet(object):
         self.ip = ip
         self.port = port
         self.timeout = timeout
-        self.loop = None
+        self.loop = asyncio.new_event_loop()
 
-    def tcp_send(self, data: str) -> str:
+    def tcp_send_socket(self, data: str) -> str:
         # IPv4, потокориентированный, TCP
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=socket.IPPROTO_TCP)
         sock.connect((self.ip, self.port))
@@ -24,7 +24,9 @@ class LNet(object):
         sock.close()
         return data
 
-    def tcp_send_async(self, data: str, loop) -> str:
+    def tcp_send(self, data: str) -> str:
+        loop = self.loop
+
         @asyncio.coroutine
         def tcp_echo_client(message, loop):
             reader, writer = yield from asyncio.open_connection(self.ip, self.port, loop=loop)
@@ -38,7 +40,6 @@ class LNet(object):
             return recv.decode()
 
         data = loop.run_until_complete(tcp_echo_client(data, loop))
-        loop.close()
         return data
 
     def udp_send(self, data: str) -> str:

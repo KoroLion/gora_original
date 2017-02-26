@@ -55,7 +55,7 @@ class PlayerInfo:
 def tcp_async(loop):
     @asyncio.coroutine
     def tcp_handle(reader, writer):
-        data = yield from reader.read(1024)  # read(100) - читать 100 байт, иначе до EOF
+        data = yield from reader.read()  # read(100) - читать 100 байт, иначе до EOF
         addr = writer.get_extra_info('peername')
 
         data = data.decode()
@@ -85,15 +85,23 @@ def tcp_async(loop):
             elif command == GO_TOP:
                 players[token].speed.x = 0
                 players[token].speed.y = -players[token].speed_amount
+                writer.write('OK'.encode())
+                writer.write_eof()
             elif command == GO_BOTTOM:
                 players[token].speed.x = 0
                 players[token].speed.y = players[token].speed_amount
+                writer.write('OK'.encode())
+                writer.write_eof()
             elif command == GO_LEFT:
                 players[token].speed.x = -players[token].speed_amount
                 players[token].speed.y = 0
+                writer.write('OK'.encode())
+                writer.write_eof()
             elif command == GO_RIGHT:
                 players[token].speed.x = players[token].speed_amount
                 players[token].speed.y = 0
+                writer.write('OK'.encode())
+                writer.write_eof()
             elif command == GET_DATA:
                 angle = data.get(J_ANGLE)
 
@@ -103,7 +111,7 @@ def tcp_async(loop):
                     data = {J_TOKEN: token,
                             J_POSITION_X: server.players[token].position.x,
                             J_POSITION_Y: server.players[token].position.y,
-                            J_ANGLE: server.players[token].angle,
+                            J_ANGLE: round(server.players[token].angle),
                             J_SKIN: server.players[token].skin}
                     j_players.append(data)
 
@@ -137,8 +145,11 @@ def tcp_async(loop):
 
 def main():
     while not server.terminated:
-        sleep(0.05)
+        sleep(1)
         server.update_players()
+        for player in server.players:
+            print(server.players[player].angle)
+        print('----')
 
 if __name__ == "__main__":
     asyncio_loop = asyncio.get_event_loop()
