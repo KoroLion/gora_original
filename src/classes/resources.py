@@ -2,7 +2,7 @@
 """Game resources module"""
 from pygame import mixer, Color
 
-from .texture import Texture
+from classes.texture import Texture
 
 
 class Sounds(object):

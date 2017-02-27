@@ -2,7 +2,7 @@
 """Class that represents single textures and animations"""
 from os import path, listdir
 from pygame import image, transform
-from src.helper_types import Size
+from classes.helper_types import Size
 
 from .constants import *
 

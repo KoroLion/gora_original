@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 """Game module"""
 import pygame
-from src.helper_types import Point
+from classes.helper_types import Point
 from .game_object import GameObject
 
 D_TOP = 0

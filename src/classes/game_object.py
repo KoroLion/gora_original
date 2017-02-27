@@ -3,7 +3,7 @@
 from pygame import sprite
 
 from .basic_object import BasicObject
-from src.helper_types import Point, Size
+from classes.helper_types import Point, Size
 
 
 class GameObject(BasicObject, sprite.Sprite):

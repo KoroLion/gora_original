@@ -3,7 +3,7 @@ import asyncio
 import ujson as json
 
 from classes.helper_types import Point
-from classes.constants import *
+from classes.network_constants import *
 
 IP = '0.0.0.0'
 

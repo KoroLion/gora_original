@@ -2,7 +2,7 @@
 """Main game core module"""
 import pygame
 from .constants import *
-from src.helper_types import Point
+from classes.helper_types import Point
 
 
 class Core(object):

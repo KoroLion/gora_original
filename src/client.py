@@ -6,8 +6,8 @@ import math
 import ujson as json
 import asyncio
 
-from src.shared_constants import *
-from src.helper_types import Size, Point
+from classes.network_constants import *
+from classes.helper_types import Size, Point
 
 from classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
 from classes.resources import Resources
