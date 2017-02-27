@@ -146,3 +146,5 @@ if __name__ == "__main__":
 
     asyncio_loop.run_until_complete(main())
     asyncio_loop.close()
+
+    tcp_server.close()

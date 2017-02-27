@@ -203,3 +203,5 @@ if __name__ == "__main__":
     asyncio_loop.run_in_executor(executor, get_data, asyncio_loop)
 
     main()
+
+    net.disconnect()
