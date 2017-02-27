@@ -1,6 +1,12 @@
 import sys
 import asyncio
-import ujson as json
+
+try:
+    import ujson as json
+    print('using ujson...')
+except ModuleNotFoundError:
+    import json
+    print('using json...')
 
 from classes.helper_types import Point
 from classes.network_constants import *
@@ -53,7 +59,7 @@ class PlayerInfo:
 
 async def tcp_handle(reader, writer):
     while True:
-        data = await reader.read(1024)  # read(100) - читать 100 байт, иначе до EOF
+        data = await reader.read(2048)  # read(100) - читать 100 байт, иначе до EOF
         if not data:
             break
 

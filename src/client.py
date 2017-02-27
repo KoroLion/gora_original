@@ -3,8 +3,12 @@ from time import sleep, time
 import hashlib
 import pygame
 import math
-import ujson as json
 import asyncio
+
+try:
+    import ujson as json
+except ModuleNotFoundError:
+    import json
 
 from classes.network_constants import *
 from classes.helper_types import Size, Point
