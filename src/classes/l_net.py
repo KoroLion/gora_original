@@ -28,15 +28,18 @@ class LNet(object):
 
     def tcp_send(self, data: str) -> str:
         if self.connected:
-            async def tcp_echo_client(message):
+            async def tcp_client(message):
                 message += '\n'
                 self.writer.write(message.encode())
 
-                recv = await self.reader.read(1024)
+                # даём возможность буферу очиститься
+                await self.writer.drain()
+
+                recv = await self.reader.readline()
 
                 return recv.decode()
 
-            data = self.loop.run_until_complete(tcp_echo_client(data))
+            data = self.loop.run_until_complete(tcp_client(data))
             return data
 
     def disconnect(self):

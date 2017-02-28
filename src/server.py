@@ -87,23 +87,23 @@ async def tcp_handle(reader, writer):
                                                 angle=data.get(J_ANGLE))
                               }
                 players.update(new_player)
-                writer.write('OK'.encode())
+                writer.write('OK + \n'.encode())
             elif command == GO_TOP:
                 players[token].speed.x = 0
                 players[token].speed.y = -players[token].speed_amount
-                writer.write('OK'.encode())
+                writer.write('OK + \n'.encode())
             elif command == GO_BOTTOM:
                 players[token].speed.x = 0
                 players[token].speed.y = players[token].speed_amount
-                writer.write('OK'.encode())
+                writer.write('OK + \n'.encode())
             elif command == GO_LEFT:
                 players[token].speed.x = -players[token].speed_amount
                 players[token].speed.y = 0
-                writer.write('OK'.encode())
+                writer.write('OK + \n'.encode())
             elif command == GO_RIGHT:
                 players[token].speed.x = players[token].speed_amount
                 players[token].speed.y = 0
-                writer.write('OK'.encode())
+                writer.write('OK + \n'.encode())
             elif command == GET_DATA:
                 angle = round(data.get(J_ANGLE))
 
@@ -117,11 +117,14 @@ async def tcp_handle(reader, writer):
                             J_SKIN: server.players[token].skin}
                     j_players.append(data)
 
-                writer.write(json.dumps(j_players).encode())
+                writer.write((json.dumps(j_players) + "\n").encode())
             elif command == DISCONNECT:
                 print(cur_player_token + ' (' + players[cur_player_token].ip + ') disconnected!')
                 server.disconnect_player(cur_player_token)
-                writer.write('OK'.encode())
+                writer.write('OK + \n'.encode())
+
+            # даём возможность буферу очиститься
+            await writer.drain()
 
     writer.close()
 
