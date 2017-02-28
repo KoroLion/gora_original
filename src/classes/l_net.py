@@ -29,6 +29,7 @@ class LNet(object):
     def tcp_send(self, data: str) -> str:
         if self.connected:
             async def tcp_echo_client(message):
+                message += '\n'
                 self.writer.write(message.encode())
 
                 recv = await self.reader.read(1024)

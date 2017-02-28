@@ -59,7 +59,7 @@ class PlayerInfo:
 
 async def tcp_handle(reader, writer):
     while True:
-        data = await reader.read(2048)  # read(100) - читать 100 байт, иначе до EOF
+        data = await reader.readline()  # read(100) - читать 100 байт, иначе до EOF
         if not data:
             break
 
