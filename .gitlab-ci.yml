@@ -1,0 +1,16 @@
+image: alpine
+
+stages:
+    - compile
+    - test
+
+pylint_test:
+    stage: test
+    before_script:
+        - echo "ipv6" >> /etc/modules
+        - apk update
+        - apk add --no-cache python3 py-pip
+        - pip install virtualenv
+        - virtualenv -p python3 gora
+        - /builds/mvkaplenko/gora/gora/bin/pip install pylint
+    script: /builds/mvkaplenko/gora/gora/bin/pylint program
