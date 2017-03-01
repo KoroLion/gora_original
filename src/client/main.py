@@ -172,6 +172,10 @@ def main():
             elif event.type == pygame.MOUSEMOTION:
                 mouse_pos = event.pos
 
+                # обновляем положения прицела
+                game.aim.position = Point(event.pos[0] - game.aim.texture.size.width / 2,
+                                          event.pos[1] - game.aim.texture.size.height / 2)
+
         if game.players.get(TOKEN):
             client.angle = get_angle(game.players.get(TOKEN).position, game.players[TOKEN].size, mouse_pos)
 

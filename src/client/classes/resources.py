@@ -58,7 +58,7 @@ class Textures(object):
         self.robot_blue = Texture("images/robots/textures/robot_blue.png")
         self.robot_green = Texture("images/robots/textures/robot_green.png")
 
-        self.seed = Texture("images/seed.png")
+        self.aim = Texture("images/aim.png")
 
         self.none_texture = Texture("images/no_texture.png")
 

@@ -3,11 +3,14 @@
 import pygame
 from src.helper_types import Point
 from .game_object import GameObject
+from .resources import Resources
 
 D_TOP = 0
 D_BOTTOM = 1
 D_LEFT = 2
 D_RIGHT = 3
+
+res = Resources(sounds_volume=0.5)
 
 
 class Game(object):
@@ -23,6 +26,9 @@ class Game(object):
         # self.pacman = Pacman(Position(480, 660), self.res.animations.pacman)
         # self.pacman.visible = False
         # self.add_object(self.pacman)
+        self.aim = GameObject(Point(0, 0), res.textures.aim)
+        self.add_object(self.aim)
+
         self.players = {}
 
     def new_game(self):
