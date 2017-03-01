@@ -1,7 +1,8 @@
 # -*- coding: utf8 -*-
 """Class that represents single textures and animations"""
 from os import path, listdir
-from pygame import image, transform
+import math
+from pygame import image, transform, Color
 from classes.helper_types import Size
 
 from .constants import *
@@ -67,16 +68,27 @@ class Texture(object):
 
         return frames_files
 
+    def rot_center(self, image, angle):
+        """rotate an image while keeping its center and size"""
+        orig_rect = image.get_rect()
+        rot_image = transform.rotate(image, angle)
+        rot_rect = orig_rect.copy()
+        rot_rect.center = rot_image.get_rect().center
+        rot_image = rot_image.subsurface(rot_rect).copy()
+        return rot_image
+
     def update(self):
         """
         updates current frame
         """
-        if self.cached_size != self.size:
-            self.frame = transform.scale(self.frame, (self.size.width, self.size.height))
-            self.cached_size = self.size
+        #if self.cached_size != self.size:
+        #    self.frame = transform.scale(self.frame, (self.size.width, self.size.height))
+        #    self.cached_size = self.size
         if self.cached_angle != self.angle:
-            self.frame = transform.rotate(self.source_frame, self.angle)
-            self.frame = transform.scale(self.frame, (self.size.width, self.size.height))
+            self.frame = transform.scale(
+                self.rot_center(self.source_frame, self.angle),
+                (self.size.width, self.size.height)
+            )
             self.cached_angle = self.angle
 
     def next_frame(self):

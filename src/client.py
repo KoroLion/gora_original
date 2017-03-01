@@ -126,7 +126,7 @@ def get_data(loop):
                 game.players[player[J_TOKEN]].position = new_position
                 game.players[player[J_TOKEN]].angle = player[J_ANGLE]
 
-        sleep(0.01)
+        sleep(0.02)
 
 
 def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:

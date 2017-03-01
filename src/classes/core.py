@@ -1,8 +1,7 @@
-# -*- coding: utf8 -*-
 """Main game core module"""
 import pygame
-from .constants import *
-from classes.helper_types import Point
+from classes.constants import *
+from classes.helper_types import Point, Size
 
 
 class Core(object):
@@ -15,11 +14,24 @@ class Core(object):
         :param background: pygame.Color
         :param game_speed: int
         """
+        # настроечки...
+        self.limit_framerate = False
+        self.max_framerate = 60
+        self.full_screen = False
+
+        self.icon = pygame.image.load("images/robots/textures/robot_blue.png")
+
+        if self.full_screen:
+            self.full_screen = pygame.FULLSCREEN
+
+        self.display = pygame.display
+        self.surface = self.display.set_mode((size.width, size.height), self.full_screen)  # = old self.screen
+        self.display.set_caption(caption)
+        self.display.set_icon(self.icon)
 
         self.terminated = False
         self.pause = False
         self.color = color
-        self.caption = caption
         self.fps = fps
         self.clock = pygame.time.Clock()
         self.size = size
@@ -27,8 +39,8 @@ class Core(object):
         self.game_cycles = 0
         self.objects = []
 
-        self.screen = pygame.display.set_mode((size.width, size.height))
-        self.background = pygame.Surface((size.width, size.height))
+        self.background = None
+        self.set_background()
 
         self.update()
 
@@ -65,7 +77,7 @@ class Core(object):
     def render_objects(self):
         """Render all managed game objects on map"""
         for obj in self.objects:
-            obj.render(self.screen)
+            obj.render(self.surface)
 
     @staticmethod
     def sprite_group_collide(sprite, group):
@@ -78,17 +90,28 @@ class Core(object):
         temp = pygame.sprite.Group(sprite)
         return pygame.sprite.groupcollide(temp, group, False, False)
 
+    def set_background(self, color: str=None):
+        if color:
+            self.color = color
+
+        self.background = pygame.Surface((self.size.width, self.size.height))
+        self.background.fill(self.color)
+
     def update(self):
         """Game update function"""
-        pygame.display.set_caption(self.caption)
-        self.screen = pygame.display.set_mode((self.size.width, self.size.height))
-        self.background.fill(self.color)
-        self.screen.blit(self.background, (0, 0))
+
+        # очищаем экран (ставим поверх всего прямоуг.)
+        self.surface.blit(self.background, (0, 0))
+        # рендерим объекты
         self.render_objects()
+
         self.game_cycles += 1
 
-        pygame.display.flip()
-        self.clock.tick(self.fps)
+        # обновляем экран и ждём =)
+        self.display.flip()
+
+        if self.limit_framerate:
+            self.clock.tick(self.max_framerate)
 
     def terminate(self):
         """Gracefully exit from game"""

@@ -9,6 +9,9 @@ class LNet(object):
     """!
     @brief Класс для простой работы с сетью
     """
+    def error(self):
+        print('Error!')
+
     def __init__(self, ip: str, port: int, timeout: float=0.5):
         self.ip = ip
         self.port = port
@@ -22,6 +25,7 @@ class LNet(object):
 
         try:
             self.reader, self.writer = self.loop.run_until_complete(tcp_init(self.loop))
+            # self.writer._protocol.connection_lost(self.error)
             self.connected = True
         except ConnectionError:
             print('Connection error!')
@@ -43,5 +47,6 @@ class LNet(object):
             return data
 
     def disconnect(self):
-        self.writer.close()
-        self.connected = False
+        if self.connected:
+            self.writer.close()
+            self.connected = False
