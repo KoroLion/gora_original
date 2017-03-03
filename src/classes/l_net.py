@@ -1,25 +1,26 @@
-import socket
+"""!
+@file Сеть
+@brief Простая работа с сетью
+"""
 import asyncio
-from time import sleep
-
-PACKET_SIZE = 512
 
 
 class LNet(object):
     """!
     @brief Класс для простой работы с сетью
     """
-    def error(self):
-        print('Error!')
-
     def __init__(self, ip: str, port: int, timeout: float=0.5):
         self.ip = ip
         self.port = port
         self.timeout = timeout
         self.loop = asyncio.new_event_loop()
         self.connected = False
+        self.reader, self.writer = None, None
 
     def connect(self):
+        """!
+        @brief подключиться к серверу
+        """
         async def tcp_init(loop):
             reader, writer = await asyncio.open_connection(self.ip, self.port, loop=loop)
             return reader, writer
@@ -31,6 +32,11 @@ class LNet(object):
             print('Connection error!')
 
     def tcp_send(self, data: str) -> str:
+        """!
+        @brief отправить строку
+        @param data отправляемая строка (str)
+        @return ответ сервера (str)
+        """
         if self.connected:
             async def tcp_client(message):
                 message += '\n'
@@ -47,6 +53,9 @@ class LNet(object):
             return data
 
     def disconnect(self):
+        """!
+        @brief отключиться от сервера
+        """
         if self.connected:
             self.writer.close()
             self.loop.close()
