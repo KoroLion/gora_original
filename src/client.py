@@ -205,7 +205,7 @@ if __name__ == "__main__":
 
     res = Resources(sounds_volume=0.5)
 
-    main_form = Core("GORA pre-alpha 0.1", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
+    main_form = Core("GORA alpha 0.2", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
     game = Game(res)
     main_form.add_object(game)
 
