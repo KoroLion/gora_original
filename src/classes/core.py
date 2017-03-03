@@ -97,13 +97,29 @@ class Core(object):
         self.background = pygame.Surface((self.size.width, self.size.height))
         self.background.fill(self.color)
 
-    def update(self):
+    def get_camera_view(self, point, bg):
+        """!
+        @brief Возвращает вид камеры на точку
+        @param point точка, за которой следит камера (Point)
+        @param bg поверхность, на которой лежит точка (Surface)
+        @return Surface
+        """
+        size = bg.get_size()
+        cam = pygame.Surface(size)
+        cam.blit(bg, (-point.x + int(size[0] / 2), -point.y + int(size[1] / 2)))
+        return cam
+
+    def update(self, camera_mode=False, point=None):
         """Game update function"""
 
         # очищаем экран (ставим поверх всего прямоуг.)
         self.surface.blit(self.background, (0, 0))
         # рендерим объекты
         self.render_objects()
+
+        if camera_mode:
+            camera_surface = self.get_camera_view(point, self.surface)
+            self.surface.blit(camera_surface, (0, 0))
 
         self.game_cycles += 1
 

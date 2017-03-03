@@ -24,6 +24,9 @@ from classes.l_net import LNet
 IP = '127.0.0.1'
 LOGIN = 'KoroLion'
 SKIN = SKIN_BLUE
+TRACKING_CAMERA = True
+
+CENTER_POS = Point(FORM_WIDTH / 2, FORM_HEIGHT / 2)
 
 TOKEN = hashlib.md5(str(time()).encode() + LOGIN.encode()).hexdigest()
 
@@ -138,7 +141,6 @@ def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
         else:
             return -angle
 
-
 def main():
     """!
     @brief Поток отображения клиента
@@ -168,15 +170,18 @@ def main():
                     client.commands.append(C_GO_LEFT_UP)
                 if event.key == pygame.K_d:
                     client.commands.append(C_GO_RIGHT_UP)
-            elif event.type == pygame.MOUSEMOTION:
-                mouse_pos = event.pos
 
         if game.players.get(TOKEN):
-            client.angle = get_angle(game.players.get(TOKEN).position, game.players[TOKEN].size, Point(mouse_pos[0], mouse_pos[1]))
-
-        res.update()
-        game.update()
-        main_form.update()
+            mouse_pos = pygame.mouse.get_pos()
+            if TRACKING_CAMERA:
+                client.angle = get_angle(CENTER_POS, game.players[TOKEN].size,
+                                         Point(mouse_pos[0], mouse_pos[1]))
+            else:
+                client.angle = get_angle(game.players.get(TOKEN).position, game.players[TOKEN].size,
+                                         Point(mouse_pos[0], mouse_pos[1]))
+            res.update()
+            game.update()
+            main_form.update(camera_mode=TRACKING_CAMERA, point=game.players.get(TOKEN).position)
 
     client.disconnect()
 
