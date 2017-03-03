@@ -54,7 +54,7 @@ class PlayerInfo:
         self.angle = angle
         self.speed = speed
         self.ip = ip
-        self.speed_amount = 3
+        self.speed_amount = 5
         self.skin = skin
 
         # для игнорирования отпускания кнопки после нажатия противоположной ей
