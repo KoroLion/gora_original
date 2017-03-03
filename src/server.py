@@ -73,6 +73,8 @@ async def tcp_handle(reader, writer):
         if not data:
             break
 
+        print(data)
+
         addr = writer.get_extra_info('peername')
 
         data = data.decode()
@@ -101,11 +103,11 @@ async def tcp_handle(reader, writer):
                                                 angle=data.get(J_ANGLE))
                               }
                 players.update(new_player)
-                writer.write('OK + \n'.encode())
+                writer.write('OK\n'.encode())
             elif command == GET_DATA:
                 angle = round(data.get(J_ANGLE))
 
-                server.players[cur_player_token].angle = angle
+                server.players[token].angle = angle
                 j_players = []
                 for token in server.players:
                     data = {J_TOKEN: token,

@@ -19,13 +19,13 @@ class LNet(object):
         self.loop = asyncio.new_event_loop()
         self.connected = False
 
+    def connect(self):
         async def tcp_init(loop):
             reader, writer = await asyncio.open_connection(self.ip, self.port, loop=loop)
             return reader, writer
 
         try:
             self.reader, self.writer = self.loop.run_until_complete(tcp_init(self.loop))
-            # self.writer._protocol.connection_lost(self.error)
             self.connected = True
         except ConnectionError:
             print('Connection error!')
@@ -49,4 +49,5 @@ class LNet(object):
     def disconnect(self):
         if self.connected:
             self.writer.close()
+            self.loop.close()
             self.connected = False

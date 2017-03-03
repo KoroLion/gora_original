@@ -75,12 +75,13 @@ class Texture(object):
         #if self.cached_size != self.size:
         #    self.frame = transform.scale(self.frame, (self.size.width, self.size.height))
         #    self.cached_size = self.size
-        if self.cached_angle != self.angle:
+        if self.cached_angle != self.angle or self.cached_size != self.size:
             self.frame = transform.scale(
                 transform.rotate(self.source_frame, self.angle),
                 (self.size.width, self.size.height)
             )
             self.cached_angle = self.angle
+            self.cached_size = self.size
 
     def next_frame(self):
         """

@@ -23,7 +23,7 @@ from classes.l_net import LNet
 
 IP = '127.0.0.1'
 LOGIN = 'KoroLion'
-SKIN = SKIN_GREEN
+SKIN = SKIN_BLUE
 
 TOKEN = hashlib.md5(str(time()).encode() + LOGIN.encode()).hexdigest()
 
@@ -36,47 +36,31 @@ class Client(object):
     def __init__(self):
         self.commands = []
         self.angle = 0
-        self.connected = False
+        self.net = LNet(IP, PORT)
 
-    def connect(self) -> bool:
-        data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN, J_SKIN: SKIN}
+    def connect(self):
+        self.net.connect()
+
+        data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN, J_SKIN: SKIN, J_ANGLE: 0}
         data = json.dumps(data)
-        try:
-            net.tcp_send(data)
-            self.connected = True
-        except ConnectionError:
-            self.connected = False
+        self.net.tcp_send(data)
 
-        return self.connected
-
-    def send_commands(self) -> bool:
+    def send_commands(self):
         for command in self.commands:
             data = json.dumps({J_COMMAND: command, J_TOKEN: TOKEN})
-            try:
-                net.tcp_send(data)
-            except ConnectionError:
-                self.connected = False
+            self.net.tcp_send(data)
 
         self.commands = []
-        return self.connected
 
     def get_data_from_server(self) -> str:
         data = {J_COMMAND: GET_DATA, J_TOKEN: TOKEN, J_ANGLE: self.angle}
         data = json.dumps(data)
-        try:
-            return net.tcp_send(data)
-        except ConnectionError:
-            self.connected = False
-            return ''
+        return self.net.tcp_send(data)
 
     def disconnect(self):
-        try:
-            data = json.dumps({J_COMMAND: DISCONNECT, J_TOKEN: TOKEN})
-            net.tcp_send(data)
-        except ConnectionError:
-            pass
-
-        self.connected = False
+        data = json.dumps({J_COMMAND: DISCONNECT, J_TOKEN: TOKEN})
+        self.net.tcp_send(data)
+        self.net.disconnect()
 
 
 def get_data(loop):
@@ -84,10 +68,9 @@ def get_data(loop):
     @brief Поток получения информации о состоянии игры с сервера
     """
 
-    while not client.connected:
-        client.connect()
+    client.connect()
 
-    while not main_form.terminated and client.connected:
+    while not main_form.terminated and client.net.connected:
         if len(client.commands) > 0:
             client.send_commands()
 
@@ -121,7 +104,7 @@ def get_data(loop):
                     else:
                         skin = res.textures.robot_green
 
-                    new_player = {player[J_TOKEN]: Robot(Point(0, 0), skin)}
+                    new_player = {player[J_TOKEN]: Robot(Point(0, 0), skin, angle=0)}
                     game.players.update(new_player)
 
                 # ставим игрока на новую позицию, полученную с сервера
@@ -195,9 +178,12 @@ def main():
         game.update()
         main_form.update()
 
-    if client.connected:
-       client.disconnect()
+    client.disconnect()
 
+    # ждём, чтобы все соединение закрылись)
+    sleep(0.5)
+    asyncio_loop.stop()
+    asyncio_loop.close()
 
 
 if __name__ == "__main__":
@@ -205,7 +191,6 @@ if __name__ == "__main__":
 
     asyncio_loop = asyncio.get_event_loop()
 
-    net = LNet(IP, PORT)
     client = Client()
 
     res = Resources(sounds_volume=0.5)
@@ -220,5 +205,3 @@ if __name__ == "__main__":
     asyncio_loop.run_in_executor(executor, get_data, asyncio_loop)
 
     main()
-
-    net.disconnect()
