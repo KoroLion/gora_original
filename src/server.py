@@ -13,6 +13,11 @@ from classes.network_constants import *
 
 IP = '0.0.0.0'
 
+DIR_LEFT = 1
+DIR_RIGHT = 2
+DIR_TOP = 3
+DIR_BOTTOM = 4
+
 
 class ServerCore(object):
     """!
@@ -52,6 +57,10 @@ class PlayerInfo:
         self.speed_amount = 3
         self.skin = skin
 
+        # для игнорирования отпускания кнопки после нажатия противоположной ей
+        # чтобы игрок не остановился после отпускания D, если была нажата A
+        self.ignore_command = {C_GO_TOP_UP: False, C_GO_BOTTOM_DOWN: False, C_GO_LEFT_UP: False, C_GO_RIGHT_UP: False}
+
     def update(self):
         self.position.x += self.speed.x
         self.position.y += self.speed.y
@@ -79,6 +88,10 @@ async def tcp_handle(reader, writer):
             players = server.players
             cur_player_token = token
 
+            # объект игрока, отправившего запрос
+            player = players.get(token)
+
+            # подключение, отключение и передача данных
             if data.get(J_COMMAND) == CONNECT:
                 print(token + ' (' + addr[0] + ') connected!')
                 new_player = {token: PlayerInfo(Point(100, 100), Point(0, 0),
@@ -87,22 +100,6 @@ async def tcp_handle(reader, writer):
                                                 angle=data.get(J_ANGLE))
                               }
                 players.update(new_player)
-                writer.write('OK + \n'.encode())
-            elif command == GO_TOP:
-                players[token].speed.x = 0
-                players[token].speed.y = -players[token].speed_amount
-                writer.write('OK + \n'.encode())
-            elif command == GO_BOTTOM:
-                players[token].speed.x = 0
-                players[token].speed.y = players[token].speed_amount
-                writer.write('OK + \n'.encode())
-            elif command == GO_LEFT:
-                players[token].speed.x = -players[token].speed_amount
-                players[token].speed.y = 0
-                writer.write('OK + \n'.encode())
-            elif command == GO_RIGHT:
-                players[token].speed.x = players[token].speed_amount
-                players[token].speed.y = 0
                 writer.write('OK + \n'.encode())
             elif command == GET_DATA:
                 angle = round(data.get(J_ANGLE))
@@ -119,9 +116,47 @@ async def tcp_handle(reader, writer):
 
                 writer.write((json.dumps(j_players) + "\n").encode())
             elif command == DISCONNECT:
-                print(cur_player_token + ' (' + players[cur_player_token].ip + ') disconnected!')
-                server.disconnect_player(cur_player_token)
-                writer.write('OK + \n'.encode())
+                print(token + ' (' + player.ip + ') disconnected!')
+                server.disconnect_player(token)
+                writer.write('OK\n'.encode())
+
+            # обработка нажатий клавиш
+            elif command == C_GO_TOP_DOWN:
+                player.ignore_command[C_GO_TOP_UP] = False
+                player.ignore_command[C_GO_BOTTOM_UP] = True
+                player.speed.y = -player.speed_amount
+                writer.write('OK\n'.encode())
+            elif command == C_GO_BOTTOM_DOWN:
+                player.ignore_command[C_GO_TOP_UP] = True
+                player.ignore_command[C_GO_BOTTOM_UP] = False
+                player.speed.y = player.speed_amount
+                writer.write('OK\n'.encode())
+            elif command == C_GO_LEFT_DOWN:
+                player.ignore_command[C_GO_RIGHT_UP] = True
+                player.ignore_command[C_GO_LEFT_UP] = False
+                writer.write('OK\n'.encode())
+            elif command == C_GO_RIGHT_DOWN:
+                player.ignore_command[C_GO_RIGHT_UP] = False
+                player.ignore_command[C_GO_LEFT_UP] = True
+                player.speed.x = player.speed_amount
+                writer.write('OK\n'.encode())
+
+            # обработка отпускания клавиш
+            elif command == C_GO_TOP_UP and not player.ignore_command[C_GO_TOP_UP]:
+                player.speed.y = 0
+                writer.write('OK\n'.encode())
+            elif command == C_GO_BOTTOM_UP and not player.ignore_command[C_GO_BOTTOM_UP]:
+                player.speed.y = 0
+                writer.write('OK\n'.encode())
+            elif command == C_GO_LEFT_UP and not player.ignore_command[C_GO_LEFT_UP]:
+                player.speed.x = 0
+                writer.write('OK\n'.encode())
+            elif command == C_GO_RIGHT_UP and not player.ignore_command[C_GO_RIGHT_UP]:
+                player.speed.x = 0
+                writer.write('OK\n'.encode())
+
+            else:
+                writer.write('ERROR\n'.encode())
 
             # даём возможность буферу очиститься
             await writer.drain()

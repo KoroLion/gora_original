@@ -34,7 +34,7 @@ class Client(object):
     """
 
     def __init__(self):
-        self.command = 0
+        self.commands = []
         self.angle = 0
         self.connected = False
 
@@ -49,14 +49,15 @@ class Client(object):
 
         return self.connected
 
-    def send_command(self) -> bool:
-        data = json.dumps({J_COMMAND: self.command, J_TOKEN: TOKEN})
-        try:
-            net.tcp_send(data)
-            self.command = 0
-        except ConnectionError:
-            self.connected = False
+    def send_commands(self) -> bool:
+        for command in self.commands:
+            data = json.dumps({J_COMMAND: command, J_TOKEN: TOKEN})
+            try:
+                net.tcp_send(data)
+            except ConnectionError:
+                self.connected = False
 
+        self.commands = []
         return self.connected
 
     def get_data_from_server(self) -> str:
@@ -87,8 +88,8 @@ def get_data(loop):
         client.connect()
 
     while not main_form.terminated and client.connected:
-        if client.command != 0:
-            client.send_command()
+        if len(client.commands) > 0:
+            client.send_commands()
 
         data = client.get_data_from_server()
         if data:
@@ -116,9 +117,11 @@ def get_data(loop):
                 # если нет объекта для игрока - создаём его (которые подключились)
                 if not game.players.get(player[J_TOKEN]):
                     if player[J_SKIN] == SKIN_BLUE:
-                        new_player = {player[J_TOKEN]: Robot(Point(0, 0), res.textures.robot_blue)}
+                        skin = res.textures.robot_blue
                     else:
-                        new_player = {player[J_TOKEN]: Robot(Point(0, 0), res.textures.robot_green)}
+                        skin = res.textures.robot_green
+
+                    new_player = {player[J_TOKEN]: Robot(Point(0, 0), skin)}
                     game.players.update(new_player)
 
                 # ставим игрока на новую позицию, полученную с сервера
@@ -166,13 +169,22 @@ def main():
                 main_form.terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
-                    client.command = GO_TOP
+                    client.commands.append(C_GO_TOP_DOWN)
                 if event.key == pygame.K_s:
-                    client.command = GO_BOTTOM
+                    client.commands.append(C_GO_BOTTOM_DOWN)
                 if event.key == pygame.K_a:
-                    client.command = GO_LEFT
+                    client.commands.append(C_GO_LEFT_DOWN)
                 if event.key == pygame.K_d:
-                    client.command = GO_RIGHT
+                    client.commands.append(C_GO_RIGHT_DOWN)
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_w:
+                    client.commands.append(C_GO_TOP_UP)
+                if event.key == pygame.K_s:
+                    client.commands.append(C_GO_BOTTOM_UP)
+                if event.key == pygame.K_a:
+                    client.commands.append(C_GO_LEFT_UP)
+                if event.key == pygame.K_d:
+                    client.commands.append(C_GO_RIGHT_UP)
             elif event.type == pygame.MOUSEMOTION:
                 mouse_pos = event.pos
 
@@ -185,6 +197,7 @@ def main():
 
     if client.connected:
        client.disconnect()
+
 
 
 if __name__ == "__main__":
