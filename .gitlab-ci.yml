@@ -13,4 +13,4 @@ pylint_test:
         - pip install virtualenv
         - virtualenv -p python3 gora
         - /builds/mvkaplenko/gora/gora/bin/pip install pylint
-    script: /builds/mvkaplenko/gora/gora/bin/pylint program
+    script: /builds/mvkaplenko/gora/gora/bin/pylint src www
