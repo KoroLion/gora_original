@@ -73,8 +73,6 @@ async def tcp_handle(reader, writer):
         if not data:
             break
 
-        print(data)
-
         addr = writer.get_extra_info('peername')
 
         data = data.decode()
