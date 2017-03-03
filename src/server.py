@@ -68,7 +68,8 @@ class PlayerInfo:
 
 async def tcp_handle(reader, writer):
     while True:
-        data = await reader.readline()  # read(100) - читать 100 байт, иначе до EOF
+        # readline() - читать до \n
+        data = await reader.readline()  # read(100) - читать 100 байт,
         if not data:
             break
 
@@ -134,6 +135,7 @@ async def tcp_handle(reader, writer):
             elif command == C_GO_LEFT_DOWN:
                 player.ignore_command[C_GO_RIGHT_UP] = True
                 player.ignore_command[C_GO_LEFT_UP] = False
+                player.speed.x = -player.speed_amount
                 writer.write('OK\n'.encode())
             elif command == C_GO_RIGHT_DOWN:
                 player.ignore_command[C_GO_RIGHT_UP] = False
