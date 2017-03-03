@@ -1,3 +1,8 @@
+"""!
+@file Клиент
+@brief Главный файл клиента
+"""
+
 from concurrent.futures import ThreadPoolExecutor
 from time import sleep, time
 import hashlib
@@ -12,8 +17,8 @@ except ModuleNotFoundError:
 
 from classes.network_constants import *
 from classes.helper_types import Size, Point
-
 from classes.constants import FORM_WIDTH, FORM_HEIGHT, FPS
+
 from classes.resources import Resources
 from classes.core import Core
 from classes.game import Game
@@ -96,7 +101,7 @@ def get_data(loop):
 
             # удаляем лишние объекты игроков на клиенте (которые отключились)
             for token in client_tokens:
-                if not (token in server_tokens):
+                if not token in server_tokens:
                     game.players.pop(token)
 
             for player in players:

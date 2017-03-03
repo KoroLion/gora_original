@@ -1,6 +1,6 @@
-# -*- coding: utf8 -*-
-"""
-Constants storage module
+"""!
+@file Константы
+@brief Константы для настройки клиента
 """
 
 VERSION = "0.2"

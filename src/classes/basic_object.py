@@ -1,5 +1,7 @@
-# -*- coding: utf8 -*-
-"""Basic object module"""
+"""!
+@file Базовый объект
+@brief Родительский класс для всех объектов на форме
+"""
 
 
 class BasicObject(object):

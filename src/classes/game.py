@@ -1,5 +1,7 @@
-# -*- coding: utf8 -*-
-"""Game module"""
+"""!
+@file Игровая панель
+@brief Панель с игровым полем
+"""
 import pygame
 from classes.helper_types import Point
 from .game_object import GameObject

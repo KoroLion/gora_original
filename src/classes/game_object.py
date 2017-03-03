@@ -1,8 +1,10 @@
-# -*- coding: utf8 -*-
-"""Basic class for all GameObject"""
+"""!
+@file Игровой объект
+@brief Базовый класс для всех игровых объектов
+"""
 from pygame import sprite
 
-from .basic_object import BasicObject
+from classes.basic_object import BasicObject
 from classes.helper_types import Point, Size
 
 

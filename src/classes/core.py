@@ -1,4 +1,7 @@
-"""Main game core module"""
+"""!
+@file Ядро
+@brief Отображение визуальной части клиента (формы)
+"""
 import pygame
 from classes.constants import *
 from classes.helper_types import Point, Size
