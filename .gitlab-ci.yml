@@ -4,7 +4,7 @@ stages:
     - compile
     - test
 
-pylint_test:
+pylint:
     stage: test
     before_script:
         - echo "ipv6" >> /etc/modules
