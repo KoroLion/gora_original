@@ -25,7 +25,7 @@ class GameObject(BasicObject, sprite.Sprite):
         self.angle = angle
 
         self.texture = animation
-        self.texture.size = self.size
+        self.texture.set_size(self.size)
         self.image = animation.frame
 
         # for backward compatibility
@@ -38,9 +38,6 @@ class GameObject(BasicObject, sprite.Sprite):
         """
         Update GameObject data
         """
-        self.texture.size = self.size
-        self.texture.angle = self.angle
-
         self.image = self.texture.frame
         self.rect = self.image.get_rect()
 
@@ -62,5 +59,5 @@ class GameObject(BasicObject, sprite.Sprite):
 class Robot(GameObject):
 
     def __init__(self, position, animation, angle=0, login=''):
-        super().__init__(position, animation, angle)
+        super(Robot, self).__init__(position, animation, angle)
         self.login = login
