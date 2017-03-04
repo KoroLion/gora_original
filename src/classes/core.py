@@ -27,6 +27,7 @@ class Core(object):
         if self.full_screen:
             self.full_screen = pygame.FULLSCREEN
 
+        # создаём и настраиваем форму
         self.display = pygame.display
         self.surface = self.display.set_mode((size.width, size.height), self.full_screen)  # = old self.screen
         self.display.set_caption(caption)
