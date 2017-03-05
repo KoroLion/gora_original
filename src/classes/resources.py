@@ -97,6 +97,32 @@ class Resources(object):
         self.score_label = Color("#FFFFFF")
         self.background = Color("#F2F2F2")
 
+        self.aim = (  # sized 24x24
+            "                        ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "                        ",
+            "                        ",
+            " oooooooo  ooo  oooooooo",
+            " oooooooo  ooo  oooooooo",
+            " oooooooo  ooo  oooooooo",
+            "                        ",
+            "                        ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ",
+            "           ooo          ")
+
     def update(self):
         """Update animations and sounds"""
         self.animations.update()

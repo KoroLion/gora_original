@@ -168,7 +168,6 @@ def main():
     """!
     @brief Поток отображения клиента
     """
-
     while not main_form.terminated:
 
         for event in pygame.event.get():
@@ -229,6 +228,10 @@ if __name__ == "__main__":
     main_form = Core("GORA alpha 0.2", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
     game = Game(res)
     main_form.add_object(game)
+
+    # превращаем курсор в прицел
+    aim, mask = pygame.cursors.compile(res.aim, black='.', white='X', xor='o')
+    pygame.mouse.set_cursor((24, 24), (0, 0), aim, mask)
 
     # создаём и запускаем поток, работающий с сетью
     print('Starting get_data thread...')
