@@ -4,7 +4,7 @@
 """
 import pygame
 from classes.helper_types import Point
-from .game_object import GameObject
+from classes.basic_object import BasicObject
 
 D_TOP = 0
 D_BOTTOM = 1

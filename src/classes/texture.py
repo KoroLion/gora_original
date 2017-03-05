@@ -68,20 +68,24 @@ class Texture(object):
 
         return frames_files
 
-    def update(self):
-        """
-        updates current frame
-        """
-        #if self.cached_size != self.size:
-        #    self.frame = transform.scale(self.frame, (self.size.width, self.size.height))
-        #    self.cached_size = self.size
-        if self.cached_angle != self.angle or self.cached_size != self.size:
+    def set_size(self, new_size: Size):
+        if new_size != self.size:
             self.frame = transform.scale(
                 transform.rotate(self.source_frame, self.angle),
+                (new_size.width, new_size.height)
+            )
+            self.size = new_size
+
+    def set_angle(self, new_angle: int):
+        if new_angle != self.angle:
+            self.frame = transform.scale(
+                transform.rotate(self.source_frame, new_angle),
                 (self.size.width, self.size.height)
             )
-            self.cached_angle = self.angle
-            self.cached_size = self.size
+            self.angle = new_angle
+
+    def update(self):
+        pass
 
     def next_frame(self):
         """

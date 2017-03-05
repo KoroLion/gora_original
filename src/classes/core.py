@@ -3,8 +3,8 @@
 @brief Отображение визуальной части клиента (формы)
 """
 import pygame
-from classes.constants import *
-from classes.helper_types import Point, Size
+from classes.basic_object import BasicObject
+from classes.helper_types import Point
 
 
 class Core(object):
@@ -27,6 +27,7 @@ class Core(object):
         if self.full_screen:
             self.full_screen = pygame.FULLSCREEN
 
+        # создаём и настраиваем форму
         self.display = pygame.display
         self.surface = self.display.set_mode((size.width, size.height), self.full_screen)  # = old self.screen
         self.display.set_caption(caption)
@@ -47,51 +48,18 @@ class Core(object):
 
         self.update()
 
-    def add_object(self, form_object):
-        """
-        Add object to core
-        :param form_object: BasicObject
+    def add_object(self, form_object: BasicObject):
+        """!
+        @brief добавляет объект
         """
         self.objects.append(form_object)
 
-    def get_object(self, obj_position, direction):
-        """
-        (возвращает объект на соседнем (direction) блоке от position)
-        :param position: helper_types.Position
-        :param direction: int
-        :return GameObject
-        """
-        position = Point(obj_position.x, obj_position.y)
-
-        for obj in self.objects:
-            if direction == 0:
-                if (obj.position.x == position.x) and (obj.position.y == position.y - BLOCK_HEIGHT):
-                    return obj
-            elif direction == 1:
-                if (obj.position.x == position.x) and (obj.position.y == position.y + BLOCK_HEIGHT):
-                    return obj
-            elif direction == 2:
-                if (obj.position.x == position.x - BLOCK_WIDTH) and (obj.position.y == position.y):
-                    return obj
-            else:
-                if (obj.position.x == position.x + BLOCK_WIDTH) and (obj.position.y == position.y):
-                    return obj
-
     def render_objects(self):
-        """Render all managed game objects on map"""
+        """!
+        @brief отображает все объекты с visible = True на surface
+        """
         for obj in self.objects:
             obj.render(self.surface)
-
-    @staticmethod
-    def sprite_group_collide(sprite, group):
-        """
-        Check collision between sprite and group
-        :param sprite: pygame.sprite.Sprite
-        :param group: pygame.sprite.Group
-        :return same as pygame.sprite.groupcollide()
-        """
-        temp = pygame.sprite.Group(sprite)
-        return pygame.sprite.groupcollide(temp, group, False, False)
 
     def set_background(self, color: str=None):
         if color:
@@ -100,7 +68,8 @@ class Core(object):
         self.background = pygame.Surface((self.size.width, self.size.height))
         self.background.fill(self.color)
 
-    def get_camera_view(self, point, bg):
+    @staticmethod
+    def get_camera_view(point, bg):
         """!
         @brief Возвращает вид камеры на точку
         @param point точка, за которой следит камера (Point)
@@ -112,8 +81,10 @@ class Core(object):
         cam.blit(bg, (-point.x + int(size[0] / 2), -point.y + int(size[1] / 2)))
         return cam
 
-    def update(self, camera_mode=False, point=None):
-        """Game update function"""
+    def update(self, camera_mode: bool=False, point: Point=None):
+        """
+        @brief обновление отображения
+        """
 
         # очищаем экран (ставим поверх всего прямоуг.)
         self.surface.blit(self.background, (0, 0))

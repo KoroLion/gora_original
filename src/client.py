@@ -113,6 +113,7 @@ def get_data(loop):
                         skin = res.textures.robot_green
 
                     new_player = {player[J_TOKEN]: Robot(Point(0, 0), skin, angle=0)}
+                    new_player[player[J_TOKEN]].texture.set_size(Size(30, 30))
                     game.players.update(new_player)
 
                 # ставим игрока на новую позицию, полученную с сервера
@@ -174,6 +175,10 @@ def main():
             if event.type == pygame.QUIT:
                 main_form.terminate()
             elif event.type == pygame.KEYDOWN:
+
+                if event.key == pygame.K_ESCAPE:
+                    main_form.terminate()
+
                 if event.key == pygame.K_w:
                     client.commands.append(C_GO_TOP_DOWN)
                 if event.key == pygame.K_s:
