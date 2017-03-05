@@ -28,6 +28,8 @@ class GameObject(BasicObject, sprite.Sprite):
         self.texture.size = self.size
         self.image = animation.frame
 
+        self.start_image = self.image
+
         # for backward compatibility
         self.animation = self.texture
 
