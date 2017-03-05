@@ -159,6 +159,10 @@ def main():
             if event.type == pygame.QUIT:
                 main_form.terminate()
             elif event.type == pygame.KEYDOWN:
+
+                if event.key == pygame.K_ESCAPE:
+                    main_form.terminate()
+
                 if event.key == pygame.K_w:
                     client.commands.append(C_GO_TOP_DOWN)
                 if event.key == pygame.K_s:
