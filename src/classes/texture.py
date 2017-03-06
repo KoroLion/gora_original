@@ -8,20 +8,6 @@ from classes.helper_types import Size
 from .constants import *
 
 
-def rot_center(image: image, angle: float) -> image:
-    """!
-        @brief Поворачивает изображение с сохранением размеров
-        @param image: картинка, которую надо перевернуть
-        @param angle: градус поворота
-        @return: повернутая картинка
-    """
-    orig_rect = image.get_rect()
-    rot_image = pygame.transform.rotate(image, angle)
-    rot_rect = orig_rect.copy()
-    rot_rect.center = rot_image.get_rect().center
-    rot_image = rot_image.subsurface(rot_rect).copy()
-    return rot_image
-
 class Texture(object):
     """"Class that represents the animation"""
 
