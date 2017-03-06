@@ -119,25 +119,9 @@ def get_data(loop):
                 # ставим игрока на новую позицию, полученную с сервера
                 new_position = Point(player[J_POSITION_X], player[J_POSITION_Y])
                 game.players[player[J_TOKEN]].position = new_position
-                game.players[player[J_TOKEN]].texture.frame = rot_center(game.players[player[J_TOKEN]].start_image,
-                                                                         player[J_ANGLE])
+                game.players[player[J_TOKEN]].texture.set_angle(player[J_ANGLE], game.players[player[J_TOKEN]].start_image)
 
         sleep(0.02)
-
-
-def rot_center(image: pygame.image, angle: float) -> pygame.image:
-    """!
-        @brief Поворачивает изображение с сохранением размеров
-        @param image: картинка, которую надо перевернуть
-        @param angle: градус поворота
-        @return: повернутая картинка
-    """
-    orig_rect = image.get_rect()
-    rot_image = pygame.transform.rotate(image, angle)
-    rot_rect = orig_rect.copy()
-    rot_rect.center = rot_image.get_rect().center
-    rot_image = rot_image.subsurface(rot_rect).copy()
-    return rot_image
 
 
 def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
