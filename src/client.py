@@ -213,10 +213,6 @@ if __name__ == "__main__":
     game = Game(res)
     main_form.add_object(game)
 
-    # превращаем курсор в прицел
-    aim, mask = pygame.cursors.compile(res.aim, black='.', white='X', xor='o')
-    pygame.mouse.set_cursor((24, 24), (0, 0), aim, mask)
-
     # создаём и запускаем поток, работающий с сетью
     print('Starting get_data thread...')
     executor = ThreadPoolExecutor(max_workers=1)

@@ -5,7 +5,9 @@
 import pygame
 from classes.basic_object import BasicObject
 from classes.helper_types import Point
+from classes.resources import Resources
 
+res = Resources(sounds_volume=0.5)
 
 class Core(object):
     """Class that represents game core. Contains and serve game objects and manage game loop."""
@@ -23,6 +25,10 @@ class Core(object):
         self.full_screen = False
 
         self.icon = pygame.image.load("images/robots/textures/robot_blue.png")
+
+        # превращаем курсор в прицел
+        aim, mask = pygame.cursors.compile(res.aim, black='.', white='X', xor='o')
+        pygame.mouse.set_cursor((24, 24), (0, 0), aim, mask)
 
         if self.full_screen:
             self.full_screen = pygame.FULLSCREEN
