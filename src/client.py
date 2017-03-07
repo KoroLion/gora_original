@@ -3,9 +3,6 @@
 @brief Главный файл клиента
 """
 
-from concurrent.futures import ThreadPoolExecutor
-from time import sleep, time
-import hashlib
 import pygame
 import math
 import asyncio
@@ -24,16 +21,12 @@ from classes.core import Core
 from classes.game import Game
 from classes.game_object import Robot
 
-from classes.l_net import LNet
-
 IP = '127.0.0.1'
 LOGIN = 'KoroLion'
 SKIN = SKIN_BLUE
 TRACKING_CAMERA = True
 
 CENTER_POS = Point(FORM_WIDTH / 2, FORM_HEIGHT / 2)
-
-TOKEN = hashlib.md5(str(time()).encode() + LOGIN.encode()).hexdigest()
 
 
 class Client(object):
@@ -44,84 +37,16 @@ class Client(object):
     def __init__(self):
         self.commands = []
         self.angle = 0
-        self.net = LNet(IP, PORT)
+        self.id = None
 
     def connect(self):
-        self.net.connect()
-
-        data = {J_COMMAND: CONNECT, J_TOKEN: TOKEN, J_LOGIN: LOGIN, J_SKIN: SKIN, J_ANGLE: 0}
-        data = json.dumps(data)
-        self.net.tcp_send(data)
+        pass
 
     def send_commands(self):
-        for command in self.commands:
-            data = json.dumps({J_COMMAND: command, J_TOKEN: TOKEN})
-            self.net.tcp_send(data)
-
-        self.commands = []
-
-    def get_data_from_server(self) -> str:
-        data = {J_COMMAND: GET_DATA, J_TOKEN: TOKEN, J_ANGLE: self.angle}
-        data = json.dumps(data)
-        return self.net.tcp_send(data)
+        pass
 
     def disconnect(self):
-        data = json.dumps({J_COMMAND: DISCONNECT, J_TOKEN: TOKEN})
-        self.net.tcp_send(data)
-        self.net.disconnect()
-
-
-def get_data(loop):
-    """!
-    @brief Поток получения информации о состоянии игры с сервера
-    """
-
-    client.connect()
-
-    while not main_form.terminated and client.net.connected:
-        if len(client.commands) > 0:
-            client.send_commands()
-
-        data = client.get_data_from_server()
-        if data:
-            players = json.loads(data)
-            # players ~=
-            # [{'2': '67bac7074979ff6707e44a0536ab468d', '10': 1, '11': 1},
-            # {'2': '67bac7074979ff6707e44a0536ab468d', '10': 1, '11': 1}]
-
-            # собираем токены сервера
-            server_tokens = []
-            for player in players:
-                server_tokens.append(player[J_TOKEN])
-
-            # собираем токены клиента
-            client_tokens = []
-            for token in game.players:
-                client_tokens.append(token)
-
-            # удаляем лишние объекты игроков на клиенте (которые отключились)
-            for token in client_tokens:
-                if not token in server_tokens:
-                    game.players.pop(token)
-
-            for player in players:
-                # если нет объекта для игрока - создаём его (которые подключились)
-                if not game.players.get(player[J_TOKEN]):
-                    if player[J_SKIN] == SKIN_BLUE:
-                        skin = res.textures.robot_blue
-                    else:
-                        skin = res.textures.robot_green
-
-                    new_player = {player[J_TOKEN]: Robot(Point(0, 0), skin, angle=0)}
-                    new_player[player[J_TOKEN]].texture.set_size(Size(30, 30))
-                    game.players.update(new_player)
-
-                # ставим игрока на новую позицию, полученную с сервера
-                new_position = Point(player[J_POSITION_X], player[J_POSITION_Y])
-                game.players[player[J_TOKEN]].position = new_position
-                game.players[player[J_TOKEN]].texture.set_angle(player[J_ANGLE])
-
-        sleep(0.02)
+        pass
 
 
 def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
@@ -147,11 +72,10 @@ def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
         else:
             return -angle
 
-def main():
+async def main(transport):
     """!
     @brief Поток отображения клиента
     """
-    mouse_pos = (0, 0)
 
     while not main_form.terminated:
 
@@ -164,41 +88,113 @@ def main():
                     main_form.terminate()
 
                 if event.key == pygame.K_w:
+                    transport.sendto(json.dumps([BUTTON_DOWN, B_GO_TOP]).encode())
                     client.commands.append(C_GO_TOP_DOWN)
                 if event.key == pygame.K_s:
+                    transport.sendto(json.dumps([BUTTON_DOWN, B_GO_BOTTOM]).encode())
                     client.commands.append(C_GO_BOTTOM_DOWN)
                 if event.key == pygame.K_a:
+                    transport.sendto(json.dumps([BUTTON_DOWN, B_GO_LEFT]).encode())
                     client.commands.append(C_GO_LEFT_DOWN)
                 if event.key == pygame.K_d:
+                    transport.sendto(json.dumps([BUTTON_DOWN, B_GO_RIGHT]).encode())
                     client.commands.append(C_GO_RIGHT_DOWN)
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
+                    transport.sendto(json.dumps([BUTTON_UP, B_GO_TOP]).encode())
                     client.commands.append(C_GO_TOP_UP)
                 if event.key == pygame.K_s:
+                    transport.sendto(json.dumps([BUTTON_UP, B_GO_BOTTOM]).encode())
                     client.commands.append(C_GO_BOTTOM_UP)
                 if event.key == pygame.K_a:
+                    transport.sendto(json.dumps([BUTTON_UP, B_GO_LEFT]).encode())
                     client.commands.append(C_GO_LEFT_UP)
                 if event.key == pygame.K_d:
+                    transport.sendto(json.dumps([BUTTON_UP, B_GO_RIGHT]).encode())
                     client.commands.append(C_GO_RIGHT_UP)
+            elif event.type == pygame.MOUSEMOTION:
+                transport.sendto(json.dumps([ANGLE, client.angle]).encode())
 
-        if game.players.get(TOKEN):
+        if game.players.get(client.id):
+            # получаем объект игрока (который играет с этого клиента =) )
+            player = game.players.get(client.id)
+
             mouse_pos = pygame.mouse.get_pos()
+            mouse_pos = Point(mouse_pos[0], mouse_pos[1])
+
             if TRACKING_CAMERA:
-                client.angle = get_angle(CENTER_POS, game.players[TOKEN].size,
-                                         Point(mouse_pos[0], mouse_pos[1]))
+                client.angle = get_angle(CENTER_POS, player.size, mouse_pos)
             else:
-                client.angle = get_angle(game.players.get(TOKEN).position, game.players[TOKEN].size,
-                                         Point(mouse_pos[0], mouse_pos[1]))
+                client.angle = get_angle(player.position, player.size, mouse_pos)
+
             res.update()
             game.update()
-            main_form.update(camera_mode=TRACKING_CAMERA, point=game.players.get(TOKEN).position)
+            main_form.update(camera_mode=TRACKING_CAMERA, point=player.position)
 
-    client.disconnect()
+        await asyncio.sleep(0.01)
 
-    # ждём, чтобы все соединение закрылись)
-    sleep(0.5)
-    asyncio_loop.stop()
-    asyncio_loop.close()
+    data = json.dumps([DISCONNECT])
+    transport.sendto(data.encode())
+
+
+class EchoClientProtocol(asyncio.DatagramProtocol):
+    def __init__(self, loop):
+        self.loop = loop
+        self.transport = None
+
+    def connection_made(self, transport):
+        self.transport = transport
+        data = json.dumps([CONNECT, SKIN])
+        self.transport.sendto(data.encode())
+
+    def datagram_received(self, data, addr):
+        data = data.decode()
+        data = json.loads(data)
+        command = data[0]
+
+        if command == DATA:
+            players = data[1]
+
+            # собираем ID сервера
+            visible_pids = []
+            for player in players:
+                visible_pids.append(player[J_ID])
+
+            # собираем ID клиента
+            client_pids = []
+            for pid in game.players:
+                client_pids.append(pid)
+
+            # удаляем лишние объекты игроков на клиенте (которые отключились)
+            for pid in client_pids:
+                if not pid in visible_pids:
+                    game.players.pop(pid)
+
+            for player in players:
+                pid = player[J_ID]
+
+                if not game.players.get(pid):
+                    if player[J_SKIN] == SKIN_BLUE:
+                        skin = res.textures.robot_blue
+                    else:
+                        skin = res.textures.robot_green
+
+                    new_player = {pid: Robot(Point(0, 0), skin, angle=0)}
+                    new_player[pid].texture.set_size(Size(30, 30))
+                    game.players.update(new_player)
+
+                game.players[pid].position = Point(player[J_POSITION_X], player[J_POSITION_Y])
+                game.players[pid].texture.set_angle(player[J_ANGLE])
+        elif command == ID:
+            client.id = data[1]
+
+    def error_received(self, exc):
+        print('Error received:', exc)
+
+    def connection_lost(self, exc):
+        print("Socket closed, stop the event loop")
+        loop = asyncio.get_event_loop()
+        loop.stop()
 
 
 if __name__ == "__main__":
@@ -214,9 +210,9 @@ if __name__ == "__main__":
     game = Game(res)
     main_form.add_object(game)
 
-    # создаём и запускаем поток, работающий с сетью
-    print('Starting get_data thread...')
-    executor = ThreadPoolExecutor(max_workers=1)
-    asyncio_loop.run_in_executor(executor, get_data, asyncio_loop)
-
-    main()
+    udp_loop = asyncio.new_event_loop()
+    connect = asyncio_loop.create_datagram_endpoint(
+        lambda: EchoClientProtocol(asyncio_loop),
+        remote_addr=('127.0.0.1', 22000))
+    transport, protocol = asyncio_loop.run_until_complete(connect)
+    asyncio_loop.run_until_complete(main(transport))

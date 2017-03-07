@@ -100,8 +100,8 @@ class Core(object):
         # обновляем экран и ждём =)
         self.display.flip()
 
-        if self.limit_framerate:
-            self.clock.tick(self.max_framerate)
+        # if self.limit_framerate:
+        #   self.clock.tick(self.max_framerate)
 
     def terminate(self):
         """Gracefully exit from game"""
