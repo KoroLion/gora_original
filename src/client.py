@@ -6,6 +6,7 @@
 import pygame
 import math
 import asyncio
+from time import sleep
 
 try:
     import ujson as json
@@ -38,15 +39,24 @@ class Client(object):
         self.commands = []
         self.angle = 0
         self.id = None
+        self.transport = None
+        self.protocol = None
 
     def connect(self):
-        pass
+        con = asyncio_loop.create_datagram_endpoint(
+            lambda: EchoClientProtocol(asyncio_loop),
+            remote_addr=(IP, PORT))
+        self.transport, self.protocol = asyncio_loop.run_until_complete(con)
+        return not self.transport.is_closing()
 
-    def send_commands(self):
-        pass
+    def send(self, to_send):
+        data = json.dumps(to_send)
+        self.transport.sendto(data.encode())
 
     def disconnect(self):
-        pass
+        data = json.dumps([DISCONNECT])
+        self.transport.sendto(data.encode())
+        self.transport.close()
 
 
 def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
@@ -72,48 +82,42 @@ def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
         else:
             return -angle
 
-async def main(transport):
+async def main():
     """!
     @brief Поток отображения клиента
     """
 
+    transport = client.transport
     while not main_form.terminated:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 main_form.terminate()
-            elif event.type == pygame.KEYDOWN:
 
-                if event.key == pygame.K_ESCAPE:
-                    main_form.terminate()
+            elif not transport.is_closing():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        main_form.terminate()
+                    if event.key == pygame.K_w:
+                        client.send([BUTTON_DOWN, B_GO_TOP])
+                    if event.key == pygame.K_s:
+                        client.send([BUTTON_DOWN, B_GO_BOTTOM])
+                    if event.key == pygame.K_a:
+                        client.send([BUTTON_DOWN, B_GO_LEFT])
+                    if event.key == pygame.K_d:
+                        client.send([BUTTON_DOWN, B_GO_RIGHT])
 
-                if event.key == pygame.K_w:
-                    transport.sendto(json.dumps([BUTTON_DOWN, B_GO_TOP]).encode())
-                    client.commands.append(C_GO_TOP_DOWN)
-                if event.key == pygame.K_s:
-                    transport.sendto(json.dumps([BUTTON_DOWN, B_GO_BOTTOM]).encode())
-                    client.commands.append(C_GO_BOTTOM_DOWN)
-                if event.key == pygame.K_a:
-                    transport.sendto(json.dumps([BUTTON_DOWN, B_GO_LEFT]).encode())
-                    client.commands.append(C_GO_LEFT_DOWN)
-                if event.key == pygame.K_d:
-                    transport.sendto(json.dumps([BUTTON_DOWN, B_GO_RIGHT]).encode())
-                    client.commands.append(C_GO_RIGHT_DOWN)
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_w:
-                    transport.sendto(json.dumps([BUTTON_UP, B_GO_TOP]).encode())
-                    client.commands.append(C_GO_TOP_UP)
-                if event.key == pygame.K_s:
-                    transport.sendto(json.dumps([BUTTON_UP, B_GO_BOTTOM]).encode())
-                    client.commands.append(C_GO_BOTTOM_UP)
-                if event.key == pygame.K_a:
-                    transport.sendto(json.dumps([BUTTON_UP, B_GO_LEFT]).encode())
-                    client.commands.append(C_GO_LEFT_UP)
-                if event.key == pygame.K_d:
-                    transport.sendto(json.dumps([BUTTON_UP, B_GO_RIGHT]).encode())
-                    client.commands.append(C_GO_RIGHT_UP)
-            elif event.type == pygame.MOUSEMOTION:
-                transport.sendto(json.dumps([ANGLE, client.angle]).encode())
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_w:
+                        client.send([BUTTON_UP, B_GO_TOP])
+                    if event.key == pygame.K_s:
+                        client.send([BUTTON_UP, B_GO_BOTTOM])
+                    if event.key == pygame.K_a:
+                        client.send([BUTTON_UP, B_GO_LEFT])
+                    if event.key == pygame.K_d:
+                        client.send([BUTTON_UP, B_GO_RIGHT])
+                elif event.type == pygame.MOUSEMOTION:
+                    client.send([ANGLE, client.angle])
 
         if game.players.get(client.id):
             # получаем объект игрока (который играет с этого клиента =) )
@@ -133,8 +137,7 @@ async def main(transport):
 
         await asyncio.sleep(0.01)
 
-    data = json.dumps([DISCONNECT])
-    transport.sendto(data.encode())
+    client.disconnect()
 
 
 class EchoClientProtocol(asyncio.DatagramProtocol):
@@ -143,6 +146,7 @@ class EchoClientProtocol(asyncio.DatagramProtocol):
         self.transport = None
 
     def connection_made(self, transport):
+        # после подключения
         self.transport = transport
         data = json.dumps([CONNECT, SKIN])
         self.transport.sendto(data.encode())
@@ -190,12 +194,11 @@ class EchoClientProtocol(asyncio.DatagramProtocol):
 
     def error_received(self, exc):
         print('Error received:', exc)
+        print('Closing connection...')
+        self.transport.close()
 
     def connection_lost(self, exc):
-        print("Socket closed, stop the event loop")
-        loop = asyncio.get_event_loop()
-        loop.stop()
-
+        print('Connection closed!')
 
 if __name__ == "__main__":
     pygame.init()
@@ -210,9 +213,14 @@ if __name__ == "__main__":
     game = Game(res)
     main_form.add_object(game)
 
-    udp_loop = asyncio.new_event_loop()
-    connect = asyncio_loop.create_datagram_endpoint(
-        lambda: EchoClientProtocol(asyncio_loop),
-        remote_addr=('127.0.0.1', 22000))
-    transport, protocol = asyncio_loop.run_until_complete(connect)
-    asyncio_loop.run_until_complete(main(transport))
+    # подключаемся к серверу
+    print('Trying to connect...')
+    while not client.connect():
+        print('Connection attempt failed!')
+        sleep(2)
+        print('Trying to connect...')
+    print('Successfully connected to {}:{}!'.format(IP, PORT))
+
+    asyncio_loop.run_until_complete(main())
+
+    asyncio_loop.close()
