@@ -230,19 +230,21 @@ if __name__ == "__main__":
     asyncio_loop = asyncio.get_event_loop()
 
     print('GORA server alpha 0.3 (by Infit team)')
-    print('Initializing server...')
 
     print('Starting up UDP server...')
-    listen = asyncio_loop.create_datagram_endpoint(
-        UdpServerProtocol, local_addr=(IP, PORT))
-    transport, protocol = asyncio_loop.run_until_complete(listen)
-    server = ServerCore(transport)
+    try:
+        listen = asyncio_loop.create_datagram_endpoint(
+            UdpServerProtocol, local_addr=(IP, PORT))
+        transport, protocol = asyncio_loop.run_until_complete(listen)
+        server = ServerCore(transport)
 
-    console_thread = Thread(target=console)
-    console_thread.daemon = True
-    console_thread.start()
+        console_thread = Thread(target=console)
+        console_thread.daemon = True
+        console_thread.start()
 
-    asyncio_loop.run_until_complete(game(transport))
+        asyncio_loop.run_until_complete(game(transport))
 
-    transport.close()
-    asyncio_loop.close()
+        transport.close()
+        asyncio_loop.close()
+    except OSError:
+        print('#ERROR: Address already in use!')
