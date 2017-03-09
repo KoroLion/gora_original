@@ -57,6 +57,7 @@ class Textures(object):
     def __init__(self):
         self.robot_blue = Texture("images/robots/textures/robot_blue.png")
         self.robot_green = Texture("images/robots/textures/robot_green.png")
+        self.robot_orange = Texture("images/robots/textures/robot_orange.png")
 
         self.seed = Texture("images/seed.png")
 

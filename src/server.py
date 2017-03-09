@@ -25,8 +25,13 @@ class ServerCore(object):
     Занимается обработкой комманд и хранением данных
     """
     def __init__(self, ip: str, port: int):
+        self.new_pid = 0
         self.players = {}
         self.terminated = False
+
+    def get_new_pid(self):
+        self.new_pid += 1
+        return self.new_pid
 
     def start_server(self):
         pass
@@ -49,12 +54,14 @@ class PlayerInfo:
     """!
     @brief Класс информации об игроке, хранящейся на сервере
     """
-    def __init__(self, position: Point, speed: Point, angle: int=50, ip: str='', skin: int=0):
+    def __init__(self, pid, position: Point, speed: Point, angle: int=50, ip: str='', skin: int=0, login: str=''):
+        self.id = pid
         self.position = position
         self.angle = angle
         self.speed = speed
         self.ip = ip
         self.speed_amount = 5
+        self.login = login
         self.skin = skin
 
         # для игнорирования отпускания кнопки после нажатия противоположной ей
@@ -65,17 +72,35 @@ class PlayerInfo:
         self.position.x += self.speed.x
         self.position.y += self.speed.y
 
+async def game(transport: asyncio.transports):
+    while not server.terminated:
+        server.update_players()
 
-async def tcp_handle(reader, writer):
-    while True:
-        # readline() - читать до \n
-        data = await reader.readline()  # read(100) - читать 100 байт,
-        if not data:
-            break
+        j_players = []
+        for addr in server.players:
+            data = {J_ID: server.players[addr].id,
+                    J_POSITION_X: server.players[addr].position.x,
+                    J_POSITION_Y: server.players[addr].position.y,
+                    J_ANGLE: server.players[addr].angle,
+                    J_SKIN: server.players[addr].skin}
+            j_players.append(data)
 
-        addr = writer.get_extra_info('peername')
+        for addr in server.players:
+            transport.sendto((json.dumps([DATA, j_players])).encode(), addr)
 
+        await asyncio.sleep(0.05)
+
+
+class EchoServerProtocol(asyncio.DatagramProtocol):
+    def connection_made(self, transport):
+        self.transport = transport
+
+    def connection_lost(self, exc):
+        print('Disconnected!')
+
+    def datagram_received(self, data, addr):
         data = data.decode()
+
         try:
             data = json.loads(data)
             correct_data = True
@@ -84,91 +109,86 @@ async def tcp_handle(reader, writer):
             correct_data = False
 
         if correct_data:
-            command = data.get(J_COMMAND)
-            token = data.get(J_TOKEN)
+            command = data[0]
             players = server.players
-            cur_player_token = token
-
-            # объект игрока, отправившего запрос
-            player = players.get(token)
+            player = server.players.get(addr)
 
             # подключение, отключение и передача данных
-            if data.get(J_COMMAND) == CONNECT:
-                print(token + ' (' + addr[0] + ') connected!')
-                new_player = {token: PlayerInfo(Point(100, 100), Point(0, 0),
-                                                ip=addr[0],
-                                                skin=data.get(J_SKIN),
-                                                angle=data.get(J_ANGLE))
+            if command == CONNECT:
+                pid = server.get_new_pid()
+                print('{} connected ({}:{})!'.format(data[1], addr[0], addr[1]))
+                new_player = {addr: PlayerInfo(pid, Point(100, 100), Point(0, 0),
+                                                login=data[1],
+                                                skin=data[2],
+                                                angle=0)
                               }
                 players.update(new_player)
-                writer.write('OK\n'.encode())
-            elif command == GET_DATA:
-                angle = round(data.get(J_ANGLE))
 
-                server.players[token].angle = angle
-                j_players = []
-                for token in server.players:
-                    data = {J_TOKEN: token,
-                            J_POSITION_X: server.players[token].position.x,
-                            J_POSITION_Y: server.players[token].position.y,
-                            J_ANGLE: server.players[token].angle,
-                            J_SKIN: server.players[token].skin}
-                    j_players.append(data)
-
-                writer.write((json.dumps(j_players) + "\n").encode())
+                data = json.dumps([ID, pid])
+                self.transport.sendto(data.encode(), addr)
             elif command == DISCONNECT:
-                print(token + ' (' + player.ip + ') disconnected!')
-                server.disconnect_player(token)
-                writer.write('OK\n'.encode())
+                login = server.players[addr].login
+                print('{} disconnected ({}:{})!'.format(login, addr[0], addr[1]))
+                server.disconnect_player(addr)
+            elif command == BUTTON_DOWN:
+                button = data[1]
+                if button == B_GO_TOP:
+                    player.ignore_command[B_GO_TOP] = False
+                    player.ignore_command[B_GO_BOTTOM] = True
+                    player.speed.y = -player.speed_amount
+                elif button == B_GO_BOTTOM:
+                    player.ignore_command[B_GO_TOP] = True
+                    player.ignore_command[B_GO_BOTTOM] = False
+                    player.speed.y = player.speed_amount
+                elif button == B_GO_LEFT:
+                    player.ignore_command[B_GO_LEFT] = False
+                    player.ignore_command[B_GO_RIGHT] = True
+                    player.speed.x = -player.speed_amount
+                elif button == B_GO_RIGHT:
+                    player.ignore_command[B_GO_LEFT] = True
+                    player.ignore_command[B_GO_RIGHT] = False
+                    player.speed.x = player.speed_amount
+            elif command == BUTTON_UP:
+                button = data[1]
+                if button == B_GO_TOP and not player.ignore_command[B_GO_TOP] or \
+                        button == B_GO_BOTTOM and not player.ignore_command[B_GO_BOTTOM]:
+                    player.speed.y = 0
+                elif button == B_GO_LEFT and not player.ignore_command[B_GO_LEFT] or \
+                        button == B_GO_RIGHT and not player.ignore_command[B_GO_RIGHT]:
+                    player.speed.x = 0
+            elif command == ANGLE:
+                new_angle = data[1]
+                player = server.players[addr]
+                player.angle = new_angle
 
             # обработка нажатий клавиш
             elif command == C_GO_TOP_DOWN:
                 player.ignore_command[C_GO_TOP_UP] = False
                 player.ignore_command[C_GO_BOTTOM_UP] = True
                 player.speed.y = -player.speed_amount
-                writer.write('OK\n'.encode())
             elif command == C_GO_BOTTOM_DOWN:
                 player.ignore_command[C_GO_TOP_UP] = True
                 player.ignore_command[C_GO_BOTTOM_UP] = False
                 player.speed.y = player.speed_amount
-                writer.write('OK\n'.encode())
             elif command == C_GO_LEFT_DOWN:
                 player.ignore_command[C_GO_RIGHT_UP] = True
                 player.ignore_command[C_GO_LEFT_UP] = False
                 player.speed.x = -player.speed_amount
-                writer.write('OK\n'.encode())
             elif command == C_GO_RIGHT_DOWN:
                 player.ignore_command[C_GO_RIGHT_UP] = False
                 player.ignore_command[C_GO_LEFT_UP] = True
                 player.speed.x = player.speed_amount
-                writer.write('OK\n'.encode())
 
             # обработка отпускания клавиш
             elif command == C_GO_TOP_UP and not player.ignore_command[C_GO_TOP_UP]:
                 player.speed.y = 0
-                writer.write('OK\n'.encode())
             elif command == C_GO_BOTTOM_UP and not player.ignore_command[C_GO_BOTTOM_UP]:
                 player.speed.y = 0
-                writer.write('OK\n'.encode())
             elif command == C_GO_LEFT_UP and not player.ignore_command[C_GO_LEFT_UP]:
                 player.speed.x = 0
-                writer.write('OK\n'.encode())
             elif command == C_GO_RIGHT_UP and not player.ignore_command[C_GO_RIGHT_UP]:
                 player.speed.x = 0
-                writer.write('OK\n'.encode())
 
-            else:
-                writer.write('ERROR\n'.encode())
-
-            # даём возможность буферу очиститься
-            await writer.drain()
-
-    writer.close()
-
-async def main():
-    while not server.terminated:
-        server.update_players()
-        await asyncio.sleep(0.05)
 
 if __name__ == "__main__":
     asyncio_loop = asyncio.get_event_loop()
@@ -177,20 +197,12 @@ if __name__ == "__main__":
     print('Initializing server...')
     server = ServerCore(IP, PORT)
 
-    print('Setting up TCP server...')
-    coro = asyncio.start_server(tcp_handle, '', PORT, loop=asyncio_loop)
-    print('Starting TCP server at {}:{}...'.format(IP, PORT))
-    try:
-        tcp_server = asyncio_loop.run_until_complete(coro)
-    except OSError:
-        print('Error while attempting to bind on address {}:{}'.format(IP, PORT))
-        sys.exit()
+    print('Starting up UDP server...')
+    listen = asyncio_loop.create_datagram_endpoint(
+        EchoServerProtocol, local_addr=(IP, PORT))
+    transport, protocol = asyncio_loop.run_until_complete(listen)
 
-    # сервер запущен, пока не нажали Ctrl+C
-    addr = tcp_server.sockets[0].getsockname()
-    print('TCP server started at {}:{}'.format(addr[0], addr[1]))
+    asyncio_loop.run_until_complete(game(transport))
 
-    asyncio_loop.run_until_complete(main())
+    transport.close()
     asyncio_loop.close()
-
-    tcp_server.close()
