@@ -1,4 +1,3 @@
-import sys
 import asyncio
 
 try:
@@ -91,7 +90,7 @@ async def game(transport: asyncio.transports):
         await asyncio.sleep(0.05)
 
 
-class EchoServerProtocol(asyncio.DatagramProtocol):
+class UdpServerProtocol(asyncio.DatagramProtocol):
     def connection_made(self, transport):
         self.transport = transport
 
@@ -199,7 +198,7 @@ if __name__ == "__main__":
 
     print('Starting up UDP server...')
     listen = asyncio_loop.create_datagram_endpoint(
-        EchoServerProtocol, local_addr=(IP, PORT))
+        UdpServerProtocol, local_addr=(IP, PORT))
     transport, protocol = asyncio_loop.run_until_complete(listen)
 
     asyncio_loop.run_until_complete(game(transport))
