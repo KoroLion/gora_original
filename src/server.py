@@ -44,32 +44,34 @@ class Server(object):
         return result
 
     def start(self):
-        try:
-            listen = asyncio_loop.create_datagram_endpoint(
-                UdpServerProtocol, local_addr=(IP, PORT))
-            self.transport, self.protocol = asyncio_loop.run_until_complete(listen)
-            return True
-        except OSError:
-            return False
+        if self.closed():
+            try:
+                listen = asyncio_loop.create_datagram_endpoint(
+                    UdpServerProtocol, local_addr=(IP, PORT))
+                self.transport, self.protocol = asyncio_loop.run_until_complete(listen)
+                return True
+            except OSError:
+                return False
 
     def send(self, to_send, addr):
-        data = json.dumps(to_send)
-        self.transport.sendto(data.encode(), addr)
+        if not self.closed():
+            data = json.dumps(to_send)
+            self.transport.sendto(data.encode(), addr)
 
     def close(self):
-        self.transport.close()
+        if not self.closed():
+            self.transport.close()
 
     def closed(self):
-        return self.transport.is_closing()
+        if self.transport:
+            return self.transport.is_closing()
+        else:
+            return True
 
-    def disconnect_player(self, token: str) -> bool:  # todo: обработка ошибок
-        self.players[token].position = Point(1, 1)
-        self.players[token].speed = Point(0, 0)
-        self.players.pop(token)
-        return True
-
-    def terminate(self):
-        self.terminated = True
+    def delete_player(self, addr: str):
+        self.players[addr].position = Point(1, 1)
+        self.players[addr].speed = Point(0, 0)
+        self.players.pop(addr)
 
     def update_players(self):
         for player in self.players:
@@ -136,7 +138,7 @@ class UdpServerProtocol(asyncio.DatagramProtocol):
             elif command == DISCONNECT:
                 login = server.players[addr].login
                 print('{} disconnected ({}:{})!'.format(login, addr[0], addr[1]))
-                server.disconnect_player(addr)
+                server.delete_player(addr)
             elif command == BUTTON_DOWN:
                 button = data[1]
                 if button == B_GO_TOP:
@@ -252,7 +254,7 @@ if __name__ == "__main__":
 
         asyncio_loop.run_until_complete(game())
 
-        server.transport.close()
+        server.close()
     else:
         print('#ERROR: Address already in use!')
 
