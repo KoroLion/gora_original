@@ -253,9 +253,12 @@ def connect():
     client.skin = skin_select.value
     if ':' in addr_text_area.value:
         addr = addr_text_area.value.split(':', 1)
-        client.ip, client.port = addr[0], addr[1]
     else:
-        client.ip = addr_text_area.value
+        addr = [addr_text_area.value, DEFAULT_PORT]
+    if addr[0] == 'localhost':
+        addr[0] = '127.0.0.1'
+    client.ip, client.port = addr[0], addr[1]
+
     if len(client.login) < 3:
         info_label.set_text('Your login is too short!')
         return False
@@ -303,7 +306,7 @@ if __name__ == "__main__":
     executor = ThreadPoolExecutor(max_workers=2)
 
     auth_gui = gui.Desktop(theme=gui.Theme('gora_theme'))
-    form = gui.Table(height=180, width=320)
+    form = gui.Table(height=250, width=320)
 
     addr_label = gui.Label('Server: ')
     addr_text_area = gui.TextArea(width=140, height=20)
@@ -314,7 +317,7 @@ if __name__ == "__main__":
     password_text_area = gui.TextArea(width=140, height=20)
     login_button = gui.Button('Sign in', width=140, height=40)
 
-    skin_select = gui.Select()
+    skin_select = gui.Select(width=152)
     skin_select.add('Blue', SKIN_BLUE)
     skin_select.add('Green', SKIN_GREEN)
     skin_select.add('Orange', SKIN_ORANGE)
