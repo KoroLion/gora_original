@@ -104,9 +104,11 @@ class PlayerInfo:
 class UdpServerProtocol(asyncio.DatagramProtocol):
     def connection_made(self, transport):
         self.transport = transport
+        addr = self.transport.get_extra_info('sockname')
+        print('UDP server is now listening on {}:{}'.format(addr[0], addr[1]))
 
     def connection_lost(self, exc):
-        print('Server closed!')
+        print('Server is closed!')
 
     def datagram_received(self, data, addr):
         data = data.decode()
@@ -231,30 +233,32 @@ def console():
                     print("{} was not found on this server!".format(args[0]))
             else:
                 print('Usage: kick <login>')
+        elif command == 'exit':
+            server.close()
         else:
             print('Unknown command!')
 
 
 if __name__ == "__main__":
+    print('GORA server alpha 0.3 (by Infit team)')
     asyncio_loop = asyncio.get_event_loop()
 
-    print('GORA server alpha 0.3 (by Infit team)')
-
     print('Starting up UDP server...')
-
     server = Server()
 
     if server.start():
-        addr = server.transport.get_extra_info('sockname')
-        print('UDP server is now listening on {}:{}'.format(addr[0], addr[1]))
-
+        print("Initializing server's console...")
         console_thread = Thread(target=console)
         console_thread.daemon = True
         console_thread.start()
 
+        print("Starting game loop...")
+        print("Done!")
         asyncio_loop.run_until_complete(game())
 
-        server.close()
+        if not server.closed():
+            print("Closing server...")
+            server.close()
     else:
         print('#ERROR: Address already in use!')
 
