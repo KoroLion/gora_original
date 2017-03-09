@@ -321,39 +321,20 @@ def load_settings():
     except BaseException:
         print('#ERROR: Config reading error!')
 
-if __name__ == "__main__":
-    pygame.init()
 
-    client = Client()
-
-    res = Resources(sounds_volume=0.5)
-
-    main_form = Core("GORA alpha 0.3", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
-    game = Game(res)
-    main_form.add_object(game)
-
-    executor = ThreadPoolExecutor(max_workers=2)
-
-    auth_gui = gui.Desktop(theme=gui.Theme('gora_theme'))
-    form = gui.Table(height=250, width=320)
-
+def auth_panel_init():
     addr_label = gui.Label('Server: ')
-    addr_input = gui.Input(width=140, height=20)
 
     title_label = gui.Label('GORA')
     title_label.set_font(pygame.font.Font('Tahoma.ttf', 30))
-    login_input = gui.Input(width=140, height=20)
-    password_input = gui.Input(width=140, height=20)
     login_button = gui.Button('Join', width=140, height=40)
 
-    skin_select = gui.Select(width=152)
     skin_select.add('Blue', SKIN_BLUE)
     skin_select.add('Green', SKIN_GREEN)
     skin_select.add('Orange', SKIN_ORANGE)
     skin_label = gui.Label('Skin:')
 
     login_button.connect(gui.CLICK, connect_action)
-    info_label = gui.Label('')
     login_label = gui.Label('Login: ')
     password_label = gui.Label('Password: ')
 
@@ -376,6 +357,28 @@ if __name__ == "__main__":
     form.tr()
     form.td(login_button, colspan=2)
 
+if __name__ == "__main__":
+    pygame.init()
+
+    client = Client()
+
+    res = Resources(sounds_volume=0.5)
+
+    main_form = Core("GORA alpha 0.3", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
+    game = Game(res)
+    main_form.add_object(game)
+
+    # панель входа
+    auth_gui = gui.Desktop(theme=gui.Theme('gora_theme'))
+    form = gui.Table(height=250, width=320)
+
+    info_label = gui.Label('')
+    addr_input = gui.Input(width=140, height=20)
+    login_input = gui.Input(width=140, height=20)
+    password_input = gui.Input(width=140, height=20)
+    skin_select = gui.Select(width=152)
+
+    auth_panel_init()
     auth_panel = GuiPanel(main_form.surface.get_size(), auth_gui, form)
     main_form.add_gui(auth_panel)
 
