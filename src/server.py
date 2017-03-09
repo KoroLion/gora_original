@@ -54,13 +54,14 @@ class PlayerInfo:
     """!
     @brief Класс информации об игроке, хранящейся на сервере
     """
-    def __init__(self, pid, position: Point, speed: Point, angle: int=50, ip: str='', skin: int=0):
+    def __init__(self, pid, position: Point, speed: Point, angle: int=50, ip: str='', skin: int=0, login: str=''):
         self.id = pid
         self.position = position
         self.angle = angle
         self.speed = speed
         self.ip = ip
         self.speed_amount = 5
+        self.login = login
         self.skin = skin
 
         # для игнорирования отпускания кнопки после нажатия противоположной ей
@@ -115,9 +116,10 @@ class EchoServerProtocol(asyncio.DatagramProtocol):
             # подключение, отключение и передача данных
             if command == CONNECT:
                 pid = server.get_new_pid()
-                print('{} connected ({}:{})!'.format(pid, addr[0], addr[1]))
+                print('{} connected ({}:{})!'.format(data[1], addr[0], addr[1]))
                 new_player = {addr: PlayerInfo(pid, Point(100, 100), Point(0, 0),
-                                                skin=data[1],
+                                                login=data[1],
+                                                skin=data[2],
                                                 angle=0)
                               }
                 players.update(new_player)
@@ -125,8 +127,8 @@ class EchoServerProtocol(asyncio.DatagramProtocol):
                 data = json.dumps([ID, pid])
                 self.transport.sendto(data.encode(), addr)
             elif command == DISCONNECT:
-                pid = server.players[addr].id
-                print('{} disconnected ({}:{})!'.format(pid, addr[0], addr[1]))
+                login = server.players[addr].login
+                print('{} disconnected ({}:{})!'.format(login, addr[0], addr[1]))
                 server.disconnect_player(addr)
             elif command == BUTTON_DOWN:
                 button = data[1]

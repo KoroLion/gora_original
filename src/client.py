@@ -72,6 +72,7 @@ class Client(object):
         self.transport = None
         self.protocol = None
         self.loop = asyncio.get_event_loop()
+        self.login = ''
 
     def connect(self):
         con = self.loop.create_datagram_endpoint(
@@ -179,7 +180,7 @@ class EchoClientProtocol(asyncio.DatagramProtocol):
         print('Successfully connected to {}:{}!'.format(addr[0], addr[1]))
 
         self.transport = transport
-        data = json.dumps([CONNECT, SKIN])
+        data = json.dumps([CONNECT, client.login, SKIN])
         self.transport.sendto(data.encode())
 
     def datagram_received(self, data, addr):
@@ -240,24 +241,28 @@ async def disconnect_check():
 
 
 def connect():
-    c_attempts = 0
-    print('Trying to connect...')
-    info_text = 'Connecting to {}:{}'.format(IP, PORT)
-    info_label.set_text(info_text)
-    while not client.connect() and c_attempts < MAX_CONNECT_ATTEMPTS:
-        info_label.set_text(info_text)
-        print('Connection attempt failed!')
-        sleep(2)
+    client.login = login_text_area.value
+    if len(client.login) > 2:
+        c_attempts = 0
         print('Trying to connect...')
-        c_attempts += 1
-        info_text += '.'
+        info_text = 'Connecting to {}:{}'.format(IP, PORT)
+        info_label.set_text(info_text)
+        while not client.connect() and c_attempts < MAX_CONNECT_ATTEMPTS:
+            info_label.set_text(info_text)
+            print('Connection attempt failed!')
+            sleep(2)
+            print('Trying to connect...')
+            c_attempts += 1
+            info_text += '.'
 
-    if client.connected():
-        auth_panel.visible = False
-        client.loop.run_until_complete(disconnect_check())
+        if client.connected():
+            auth_panel.visible = False
+            client.loop.run_until_complete(disconnect_check())
+        else:
+            print('Server {}:{} is unavailable!'.format(IP, PORT))
+            info_label.set_text('Server {}:{} is unavailable!'.format(IP, PORT))
     else:
-        print('Server {}:{} is unavailable!'.format(IP, PORT))
-        info_label.set_text('Server {}:{} is unavailable!'.format(IP, PORT))
+        info_label.set_text('Your login is too short'.format(IP, PORT))
 
 
 def connect_action():
