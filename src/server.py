@@ -94,7 +94,7 @@ class PlayerInfo:
         self.position.x += self.speed.x
         self.position.y += self.speed.y
 
-async def game(transport: asyncio.transports):
+async def game():
     while not server.terminated:
         server.update_players()
 
@@ -108,7 +108,7 @@ async def game(transport: asyncio.transports):
             j_players.append(data)
 
         for addr in server.players:
-            transport.sendto((json.dumps([DATA, j_players])).encode(), addr)
+            server.send([DATA, j_players], addr)
 
         await asyncio.sleep(0.05)
 
@@ -146,8 +146,7 @@ class UdpServerProtocol(asyncio.DatagramProtocol):
                               }
                 players.update(new_player)
 
-                data = json.dumps([ID, pid])
-                self.transport.sendto(data.encode(), addr)
+                server.send([ID, pid], addr)
             elif command == DISCONNECT:
                 login = server.players[addr].login
                 print('{} disconnected ({}:{})!'.format(login, addr[0], addr[1]))
@@ -242,7 +241,7 @@ if __name__ == "__main__":
         console_thread.daemon = True
         console_thread.start()
 
-        asyncio_loop.run_until_complete(game(transport))
+        asyncio_loop.run_until_complete(game())
 
         transport.close()
         asyncio_loop.close()
