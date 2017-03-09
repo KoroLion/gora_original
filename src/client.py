@@ -28,8 +28,6 @@ from classes.game_object import Robot
 from classes.gui_block import GuiPanel
 
 IP = '127.0.0.1'
-LOGIN = 'KoroLion'
-SKIN = SKIN_BLUE
 TRACKING_CAMERA = True
 MAX_CONNECT_ATTEMPTS = 1
 
@@ -72,7 +70,9 @@ class Client(object):
         self.transport = None
         self.protocol = None
         self.loop = asyncio.get_event_loop()
+
         self.login = ''
+        self.skin = None
 
     def connect(self):
         con = self.loop.create_datagram_endpoint(
@@ -180,7 +180,7 @@ class EchoClientProtocol(asyncio.DatagramProtocol):
         print('Successfully connected to {}:{}!'.format(addr[0], addr[1]))
 
         self.transport = transport
-        data = json.dumps([CONNECT, client.login, SKIN])
+        data = json.dumps([CONNECT, client.login, client.skin])
         self.transport.sendto(data.encode())
 
     def datagram_received(self, data, addr):
@@ -242,27 +242,32 @@ async def disconnect_check():
 
 def connect():
     client.login = login_text_area.value
-    if len(client.login) > 2:
-        c_attempts = 0
-        print('Trying to connect...')
-        info_text = 'Connecting to {}:{}'.format(IP, PORT)
-        info_label.set_text(info_text)
-        while not client.connect() and c_attempts < MAX_CONNECT_ATTEMPTS:
-            info_label.set_text(info_text)
-            print('Connection attempt failed!')
-            sleep(2)
-            print('Trying to connect...')
-            c_attempts += 1
-            info_text += '.'
+    client.skin = skin_select.value
+    if len(client.login) < 3:
+        info_label.set_text('Your login is too short!')
+        return False
+    if not client.skin:
+        info_label.set_text('You have not selected a skin!')
+        return False
 
-        if client.connected():
-            auth_panel.visible = False
-            client.loop.run_until_complete(disconnect_check())
-        else:
-            print('Server {}:{} is unavailable!'.format(IP, PORT))
-            info_label.set_text('Server {}:{} is unavailable!'.format(IP, PORT))
+    c_attempts = 0
+    print('Trying to connect...')
+    info_text = 'Connecting to {}:{}'.format(IP, PORT)
+    info_label.set_text(info_text)
+    while not client.connect() and c_attempts < MAX_CONNECT_ATTEMPTS:
+        info_label.set_text(info_text)
+        print('Connection attempt failed!')
+        sleep(2)
+        print('Trying to connect...')
+        c_attempts += 1
+        info_text += '.'
+
+    if client.connected():
+        auth_panel.visible = False
+        client.loop.run_until_complete(disconnect_check())
     else:
-        info_label.set_text('Your login is too short'.format(IP, PORT))
+        print('Server {}:{} is unavailable!'.format(IP, PORT))
+        info_label.set_text('Server {}:{} is unavailable!'.format(IP, PORT))
 
 
 def connect_action():
@@ -291,6 +296,10 @@ if __name__ == "__main__":
     login_text_area = gui.TextArea(width=120, height=20)
     password_text_area = gui.TextArea(width=120, height=20)
     login_button = gui.Button('Sign in', width=130, height=40)
+    skin_select = gui.Select()
+    skin_select.add('Blue', SKIN_BLUE)
+    skin_select.add('Green', SKIN_GREEN)
+    skin_label = gui.Label('Skin:')
     login_button.connect(gui.CLICK, connect_action)
     info_label = gui.Label('Current server - {}:{}'.format(IP, PORT))
     login_label = gui.Label('Login: ')
@@ -306,6 +315,9 @@ if __name__ == "__main__":
     form.tr()
     form.td(password_label)
     form.td(password_text_area)
+    form.tr()
+    form.td(skin_label)
+    form.td(skin_select)
     form.tr()
     form.td(login_button, colspan=2)
 

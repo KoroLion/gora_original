@@ -198,7 +198,6 @@ if __name__ == "__main__":
     server = ServerCore(IP, PORT)
 
     print('Starting up UDP server...')
-    # One protocol instance will be created to serve all client requests
     listen = asyncio_loop.create_datagram_endpoint(
         EchoServerProtocol, local_addr=(IP, PORT))
     transport, protocol = asyncio_loop.run_until_complete(listen)
