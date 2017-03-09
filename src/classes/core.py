@@ -18,7 +18,7 @@ class Core(object):
         :param game_speed: int
         """
         # настроечки...
-        self.limit_framerate = False
+        self.limit_framerate = True
         self.max_framerate = 60
         self.full_screen = False
 
@@ -115,8 +115,8 @@ class Core(object):
         # обновляем экран
         self.display.update()
 
-        # if self.limit_framerate:
-        #   self.clock.tick(self.max_framerate)
+        if self.limit_framerate:
+            self.clock.tick(self.max_framerate)
 
     def terminate(self):
         """Gracefully exit from game"""

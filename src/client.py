@@ -29,7 +29,7 @@ from classes.gui_block import GuiPanel
 
 DEFAULT_PORT = 22000
 TRACKING_CAMERA = True
-MAX_CONNECT_ATTEMPTS = 1
+MAX_CONNECT_ATTEMPTS = 3
 
 CENTER_POS = Point(FORM_WIDTH / 2, FORM_HEIGHT / 2)
 
@@ -171,8 +171,6 @@ def main():
         else:
             main_form.update(camera_mode=TRACKING_CAMERA, point=Point(0, 0))
 
-        sleep(0.01)
-
     client.disconnect()
 
 
@@ -249,12 +247,12 @@ async def disconnect_check():
 
 
 def connect():
-    client.login = login_text_area.value
+    client.login = login_input.value
     client.skin = skin_select.value
-    if ':' in addr_text_area.value:
-        addr = addr_text_area.value.split(':', 1)
+    if ':' in addr_input.value:
+        addr = addr_input.value.split(':', 1)
     else:
-        addr = [addr_text_area.value, DEFAULT_PORT]
+        addr = [addr_input.value, DEFAULT_PORT]
     if addr[0] == 'localhost':
         addr[0] = '127.0.0.1'
     client.ip, client.port = addr[0], addr[1]
@@ -309,12 +307,12 @@ if __name__ == "__main__":
     form = gui.Table(height=250, width=320)
 
     addr_label = gui.Label('Server: ')
-    addr_text_area = gui.TextArea(width=140, height=20)
+    addr_input = gui.Input(width=140, height=20)
 
     title_label = gui.Label('GORA')
     title_label.set_font(pygame.font.Font('Tahoma.ttf', 30))
-    login_text_area = gui.TextArea(width=140, height=20)
-    password_text_area = gui.TextArea(width=140, height=20)
+    login_input = gui.Input(width=140, height=20)
+    password_input = gui.Input(width=140, height=20)
     login_button = gui.Button('Sign in', width=140, height=40)
 
     skin_select = gui.Select(width=152)
@@ -334,13 +332,13 @@ if __name__ == "__main__":
     form.td(info_label, colspan=2)
     form.tr()
     form.td(addr_label)
-    form.td(addr_text_area)
+    form.td(addr_input)
     form.tr()
     form.td(login_label)
-    form.td(login_text_area)
+    form.td(login_input)
     form.tr()
     form.td(password_label)
-    form.td(password_text_area)
+    form.td(password_input)
     form.tr()
     form.td(skin_label)
     form.td(skin_select)
