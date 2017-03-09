@@ -10,6 +10,8 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 from time import sleep
 
+import configparser
+
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -32,6 +34,8 @@ TRACKING_CAMERA = True
 MAX_CONNECT_ATTEMPTS = 3
 
 CENTER_POS = Point(FORM_WIDTH / 2, FORM_HEIGHT / 2)
+
+CONFIG_FILE = 'config.conf'
 
 
 def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
@@ -253,6 +257,9 @@ def connect():
         addr = addr_input.value.split(':', 1)
     else:
         addr = [addr_input.value, DEFAULT_PORT]
+    if len(addr[0]) == 0:
+        info_label.set_text('Please, specify the address of the server!')
+        return False
     if addr[0] == 'localhost':
         addr[0] = '127.0.0.1'
     client.ip, client.port = addr[0], addr[1]
@@ -290,6 +297,30 @@ def connect_action():
     net.daemon = True
     net.start()
 
+
+def save_settings():
+    config = configparser.ConfigParser({})
+    config.add_section('main_settings')
+
+    config.set('main_settings', 'address', addr_input.value)
+    config.set('main_settings', 'login', login_input.value)
+    config.set('main_settings', 'skin', str(skin_select.value))
+
+    with open(CONFIG_FILE, 'w') as configfile:
+        config.write(configfile)
+
+
+def load_settings():
+    config = configparser.ConfigParser({})
+    config.read(CONFIG_FILE)
+
+    try:
+        addr_input.value = config.get('main_settings', 'address')
+        login_input.value = config.get('main_settings', 'login')
+        skin_select.value = int(config.get('main_settings', 'skin'))
+    except BaseException:
+        print('#ERROR: Config reading error!')
+
 if __name__ == "__main__":
     pygame.init()
 
@@ -313,7 +344,7 @@ if __name__ == "__main__":
     title_label.set_font(pygame.font.Font('Tahoma.ttf', 30))
     login_input = gui.Input(width=140, height=20)
     password_input = gui.Input(width=140, height=20)
-    login_button = gui.Button('Sign in', width=140, height=40)
+    login_button = gui.Button('Join', width=140, height=40)
 
     skin_select = gui.Select(width=152)
     skin_select.add('Blue', SKIN_BLUE)
@@ -348,4 +379,8 @@ if __name__ == "__main__":
     auth_panel = GuiPanel(main_form.surface.get_size(), auth_gui, form)
     main_form.add_gui(auth_panel)
 
+    load_settings()
+
     main()
+
+    save_settings()
