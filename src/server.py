@@ -1,4 +1,5 @@
 import asyncio
+from threading import Thread
 
 try:
     import ujson as json
@@ -23,14 +24,36 @@ class ServerCore(object):
     @brief главный класс сервера
     Занимается обработкой комманд и хранением данных
     """
-    def __init__(self, ip: str, port: int):
+    def __init__(self, transport):
         self.new_pid = 0
         self.players = {}
         self.terminated = False
+        self.transport = transport
+
+    def send(self, to_send, addr):
+        data = json.dumps(to_send)
+        self.transport.sendto(data.encode(), addr)
 
     def get_new_pid(self):
         self.new_pid += 1
         return self.new_pid
+
+    def kick_player(self, login: str):
+        addr = self.get_player_addr(login)
+        if addr:
+            self.send([KICK], addr)
+            return True
+        else:
+            return False
+
+    def get_player_addr(self, login: str):
+        login = login.lower()
+        result = None
+        for addr in self.players:
+            if login == self.players[addr].login.lower():
+                result = addr
+
+        return result
 
     def start_server(self):
         pass
@@ -95,7 +118,7 @@ class UdpServerProtocol(asyncio.DatagramProtocol):
         self.transport = transport
 
     def connection_lost(self, exc):
-        print('Disconnected!')
+        print('Server closed!')
 
     def datagram_received(self, data, addr):
         data = data.decode()
@@ -189,17 +212,35 @@ class UdpServerProtocol(asyncio.DatagramProtocol):
                 player.speed.x = 0
 
 
+def console():
+    while True:
+        command = input()
+        command = command.split()
+        if command[0] == 'kick':
+            if len(command[1]) > 0:
+                if server.kick_player(command[1]):
+                    print("{} has been kicked from the server!".format(command[1]))
+                else:
+                    print("{} was not found on this server!".format(command[1]))
+        else:
+            print('Unknown command!')
+
+
 if __name__ == "__main__":
     asyncio_loop = asyncio.get_event_loop()
 
-    print('*GORA server pre-alpha 0.1*')
+    print('GORA server alpha 0.3 (by Infit team)')
     print('Initializing server...')
-    server = ServerCore(IP, PORT)
 
     print('Starting up UDP server...')
     listen = asyncio_loop.create_datagram_endpoint(
         UdpServerProtocol, local_addr=(IP, PORT))
     transport, protocol = asyncio_loop.run_until_complete(listen)
+    server = ServerCore(transport)
+
+    console_thread = Thread(target=console)
+    console_thread.daemon = True
+    console_thread.start()
 
     asyncio_loop.run_until_complete(game(transport))
 

@@ -29,10 +29,10 @@ CONNECT = 5
 GET_DATA = 6
 DISCONNECT = 7
 ANGLE = 8
-
 # сервер -> клиент
-DATA = 8
-ID = 9
+DATA = 9
+ID = 10
+KICK = 11
 
 # скины (внешний вид игрока)
 SKIN_BLUE = 30

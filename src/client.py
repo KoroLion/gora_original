@@ -235,6 +235,9 @@ class UdpClientProtocol(asyncio.DatagramProtocol):
                 game.players[pid].texture.set_angle(player[J_ANGLE])
         elif command == ID:
             client.id = data[1]
+        elif command == KICK:
+            info_label.set_text('You have been kicked from the server!')
+            client.disconnect()
 
     def error_received(self, exc):
         print('Error received:', exc)
