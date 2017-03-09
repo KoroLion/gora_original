@@ -27,7 +27,7 @@ from classes.game import Game
 from classes.game_object import Robot
 from classes.gui_block import GuiPanel
 
-IP = '127.0.0.1'
+DEFAULT_PORT = 22000
 TRACKING_CAMERA = True
 MAX_CONNECT_ATTEMPTS = 1
 
@@ -73,15 +73,21 @@ class Client(object):
 
         self.login = ''
         self.skin = None
+        self.ip = ''
+        self.port = DEFAULT_PORT
 
     def connect(self):
         con = self.loop.create_datagram_endpoint(
             lambda: EchoClientProtocol(self.loop),
-            remote_addr=(IP, PORT))
+            remote_addr=(client.ip, client.port))
 
         if not self.connected():
-            self.transport, self.protocol = self.loop.run_until_complete(con)
-            return not self.transport.is_closing()
+            try:
+                self.transport, self.protocol = self.loop.run_until_complete(con)
+                return not self.transport.is_closing()
+            except BaseException:
+                print('#ERROR: Socket error!')
+                return False
         else:
             return True
 
@@ -212,6 +218,8 @@ class EchoClientProtocol(asyncio.DatagramProtocol):
                 if not game.players.get(pid):
                     if player[J_SKIN] == SKIN_BLUE:
                         skin = res.textures.robot_blue
+                    elif player[J_SKIN] == SKIN_ORANGE:
+                        skin = res.textures.robot_orange
                     else:
                         skin = res.textures.robot_green
 
@@ -243,6 +251,11 @@ async def disconnect_check():
 def connect():
     client.login = login_text_area.value
     client.skin = skin_select.value
+    if ':' in addr_text_area.value:
+        addr = addr_text_area.value.split(':', 1)
+        client.ip, client.port = addr[0], addr[1]
+    else:
+        client.ip = addr_text_area.value
     if len(client.login) < 3:
         info_label.set_text('Your login is too short!')
         return False
@@ -252,7 +265,7 @@ def connect():
 
     c_attempts = 0
     print('Trying to connect...')
-    info_text = 'Connecting to {}:{}'.format(IP, PORT)
+    info_text = 'Connecting to {}:{}'.format(client.ip, client.port)
     info_label.set_text(info_text)
     while not client.connect() and c_attempts < MAX_CONNECT_ATTEMPTS:
         info_label.set_text(info_text)
@@ -266,8 +279,8 @@ def connect():
         auth_panel.visible = False
         client.loop.run_until_complete(disconnect_check())
     else:
-        print('Server {}:{} is unavailable!'.format(IP, PORT))
-        info_label.set_text('Server {}:{} is unavailable!'.format(IP, PORT))
+        print('Server {}:{} is unavailable!'.format(client.ip, client.port))
+        info_label.set_text('Server {}:{} is unavailable!'.format(client.ip, client.port))
 
 
 def connect_action():
@@ -290,18 +303,25 @@ if __name__ == "__main__":
     executor = ThreadPoolExecutor(max_workers=2)
 
     auth_gui = gui.Desktop(theme=gui.Theme('gora_theme'))
-    form = gui.Table(height=180, width=300)
+    form = gui.Table(height=180, width=320)
+
+    addr_label = gui.Label('Server: ')
+    addr_text_area = gui.TextArea(width=140, height=20)
+
     title_label = gui.Label('GORA')
     title_label.set_font(pygame.font.Font('Tahoma.ttf', 30))
-    login_text_area = gui.TextArea(width=120, height=20)
-    password_text_area = gui.TextArea(width=120, height=20)
-    login_button = gui.Button('Sign in', width=130, height=40)
+    login_text_area = gui.TextArea(width=140, height=20)
+    password_text_area = gui.TextArea(width=140, height=20)
+    login_button = gui.Button('Sign in', width=140, height=40)
+
     skin_select = gui.Select()
     skin_select.add('Blue', SKIN_BLUE)
     skin_select.add('Green', SKIN_GREEN)
+    skin_select.add('Orange', SKIN_ORANGE)
     skin_label = gui.Label('Skin:')
+
     login_button.connect(gui.CLICK, connect_action)
-    info_label = gui.Label('Current server - {}:{}'.format(IP, PORT))
+    info_label = gui.Label('')
     login_label = gui.Label('Login: ')
     password_label = gui.Label('Password: ')
 
@@ -309,6 +329,9 @@ if __name__ == "__main__":
     form.td(title_label, colspan=2)
     form.tr()
     form.td(info_label, colspan=2)
+    form.tr()
+    form.td(addr_label)
+    form.td(addr_text_area)
     form.tr()
     form.td(login_label)
     form.td(login_text_area)

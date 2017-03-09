@@ -37,6 +37,7 @@ ID = 9
 # скины (внешний вид игрока)
 SKIN_BLUE = 30
 SKIN_GREEN = 31
+SKIN_ORANGE = 32
 
 # названия элементов списка
 J_COMMAND = '1'
