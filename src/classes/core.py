@@ -43,6 +43,8 @@ class Core(object):
         self.game_cycles = 0
         self.objects = []
 
+        self.guis = []
+
         self.background = None
         self.set_background()
 
@@ -54,12 +56,23 @@ class Core(object):
         """
         self.objects.append(form_object)
 
+    def add_gui(self, gui):
+        self.guis.append(gui)
+
+    def gui_events(self, event):
+        for gui_panel in self.guis:
+            gui_panel.gui.event(event)
+
     def render_objects(self):
         """!
         @brief отображает все объекты с visible = True на surface
         """
         for obj in self.objects:
             obj.render(self.surface)
+
+    def render_gui(self):
+        for gui in self.guis:
+            gui.render(self.surface)
 
     def set_background(self, color: str=None):
         if color:
@@ -97,8 +110,10 @@ class Core(object):
 
         self.game_cycles += 1
 
-        # обновляем экран и ждём =)
-        self.display.flip()
+        self.render_gui()
+
+        # обновляем экран
+        self.display.update()
 
         # if self.limit_framerate:
         #   self.clock.tick(self.max_framerate)

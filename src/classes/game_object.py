@@ -45,7 +45,7 @@ class GameObject(BasicObject, sprite.Sprite):
         self.rect = self.rect.move([self.speed.x, self.speed.y])
         self.position.x, self.position.y = self.rect.x, self.rect.y  # to accept moving
 
-    def render(self, screen):
+    def render(self, surface):
         """
         Render GameObject
         :param screen: pygame.display
@@ -53,7 +53,7 @@ class GameObject(BasicObject, sprite.Sprite):
         self.update()
         # render if visible
         if self.visible:
-            screen.blit(self.image, self.rect)
+            surface.blit(self.image, self.rect)
 
 
 class Robot(GameObject):

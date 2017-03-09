@@ -6,12 +6,16 @@
 import pygame
 import math
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from threading import Thread
 from time import sleep
 
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
+
+from classes.pgu import gui
 
 from classes.network_constants import *
 from classes.helper_types import Size, Point
@@ -21,42 +25,15 @@ from classes.resources import Resources
 from classes.core import Core
 from classes.game import Game
 from classes.game_object import Robot
+from classes.gui_block import GuiPanel
 
 IP = '127.0.0.1'
 LOGIN = 'KoroLion'
 SKIN = SKIN_BLUE
 TRACKING_CAMERA = True
+MAX_CONNECT_ATTEMPTS = 1
 
 CENTER_POS = Point(FORM_WIDTH / 2, FORM_HEIGHT / 2)
-
-
-class Client(object):
-    """!
-    @brief Храним данные для взаимодействия потоков и базовые команды клиента
-    """
-
-    def __init__(self):
-        self.commands = []
-        self.angle = 0
-        self.id = None
-        self.transport = None
-        self.protocol = None
-
-    def connect(self):
-        con = asyncio_loop.create_datagram_endpoint(
-            lambda: EchoClientProtocol(asyncio_loop),
-            remote_addr=(IP, PORT))
-        self.transport, self.protocol = asyncio_loop.run_until_complete(con)
-        return not self.transport.is_closing()
-
-    def send(self, to_send):
-        data = json.dumps(to_send)
-        self.transport.sendto(data.encode())
-
-    def disconnect(self):
-        data = json.dumps([DISCONNECT])
-        self.transport.sendto(data.encode())
-        self.transport.close()
 
 
 def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
@@ -82,22 +59,71 @@ def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
         else:
             return -angle
 
-async def main():
+
+class Client(object):
+    """!
+    @brief Храним данные для взаимодействия потоков и базовые команды клиента
+    """
+
+    def __init__(self):
+        self.commands = []
+        self.angle = 0
+        self.id = None
+        self.transport = None
+        self.protocol = None
+        self.loop = asyncio.get_event_loop()
+
+    def connect(self):
+        con = self.loop.create_datagram_endpoint(
+            lambda: EchoClientProtocol(self.loop),
+            remote_addr=(IP, PORT))
+
+        if not self.connected():
+            self.transport, self.protocol = self.loop.run_until_complete(con)
+            return not self.transport.is_closing()
+        else:
+            return True
+
+    def send(self, to_send):
+        if self.connected():
+            data = json.dumps(to_send)
+            self.transport.sendto(data.encode())
+            return True
+
+        return False
+
+    def disconnect(self):
+        if self.connected():
+            data = json.dumps([DISCONNECT])
+            self.transport.sendto(data.encode())
+            self.transport.close()
+            return True
+
+        return False
+
+    def connected(self):
+        if self.transport:
+            return not self.transport.is_closing()
+
+        return False
+
+
+def main():
     """!
     @brief Поток отображения клиента
     """
-
-    transport = client.transport
+    player = None
     while not main_form.terminated:
-
         for event in pygame.event.get():
+            main_form.gui_events(event)
+
             if event.type == pygame.QUIT:
                 main_form.terminate()
 
-            elif not transport.is_closing():
+            elif client.connected():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        main_form.terminate()
+                        client.disconnect()
                     if event.key == pygame.K_w:
                         client.send([BUTTON_DOWN, B_GO_TOP])
                     if event.key == pygame.K_s:
@@ -131,11 +157,14 @@ async def main():
             else:
                 client.angle = get_angle(player.position, player.size, mouse_pos)
 
-            res.update()
-            game.update()
+        res.update()
+        game.update()
+        if player:
             main_form.update(camera_mode=TRACKING_CAMERA, point=player.position)
+        else:
+            main_form.update(camera_mode=TRACKING_CAMERA, point=Point(0, 0))
 
-        await asyncio.sleep(0.01)
+        sleep(0.01)
 
     client.disconnect()
 
@@ -146,7 +175,9 @@ class EchoClientProtocol(asyncio.DatagramProtocol):
         self.transport = None
 
     def connection_made(self, transport):
-        # после подключения
+        addr = transport.get_extra_info('peername')
+        print('Successfully connected to {}:{}!'.format(addr[0], addr[1]))
+
         self.transport = transport
         data = json.dumps([CONNECT, SKIN])
         self.transport.sendto(data.encode())
@@ -200,27 +231,80 @@ class EchoClientProtocol(asyncio.DatagramProtocol):
     def connection_lost(self, exc):
         print('Connection closed!')
 
+
+async def disconnect_check():
+    while client.connected():
+        await asyncio.sleep(1)
+
+    auth_panel.visible = True
+
+
+def connect():
+    c_attempts = 0
+    print('Trying to connect...')
+    info_text = 'Connecting to {}:{}'.format(IP, PORT)
+    info_label.set_text(info_text)
+    while not client.connect() and c_attempts < MAX_CONNECT_ATTEMPTS:
+        info_label.set_text(info_text)
+        print('Connection attempt failed!')
+        sleep(2)
+        print('Trying to connect...')
+        c_attempts += 1
+        info_text += '.'
+
+    if client.connected():
+        auth_panel.visible = False
+        client.loop.run_until_complete(disconnect_check())
+    else:
+        print('Server {}:{} is unavailable!'.format(IP, PORT))
+        info_label.set_text('Server {}:{} is unavailable!'.format(IP, PORT))
+
+
+def connect_action():
+    # создаём и запускаем поток для работы с сетью
+    net = Thread(target=connect)
+    net.daemon = True
+    net.start()
+
 if __name__ == "__main__":
     pygame.init()
-
-    asyncio_loop = asyncio.get_event_loop()
 
     client = Client()
 
     res = Resources(sounds_volume=0.5)
 
-    main_form = Core("GORA alpha 0.2", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
+    main_form = Core("GORA alpha 0.3", Size(FORM_WIDTH, FORM_HEIGHT), res.background, FPS * 1)
     game = Game(res)
     main_form.add_object(game)
 
-    # подключаемся к серверу
-    print('Trying to connect...')
-    while not client.connect():
-        print('Connection attempt failed!')
-        sleep(2)
-        print('Trying to connect...')
-    print('Successfully connected to {}:{}!'.format(IP, PORT))
+    executor = ThreadPoolExecutor(max_workers=2)
 
-    asyncio_loop.run_until_complete(main())
+    auth_gui = gui.Desktop(theme=gui.Theme('gora_theme'))
+    form = gui.Table(height=180, width=300)
+    title_label = gui.Label('GORA')
+    title_label.set_font(pygame.font.Font('Tahoma.ttf', 30))
+    login_text_area = gui.TextArea(width=120, height=20)
+    password_text_area = gui.TextArea(width=120, height=20)
+    login_button = gui.Button('Sign in', width=130, height=40)
+    login_button.connect(gui.CLICK, connect_action)
+    info_label = gui.Label('Current server - {}:{}'.format(IP, PORT))
+    login_label = gui.Label('Login: ')
+    password_label = gui.Label('Password: ')
 
-    asyncio_loop.close()
+    form.tr()
+    form.td(title_label, colspan=2)
+    form.tr()
+    form.td(info_label, colspan=2)
+    form.tr()
+    form.td(login_label)
+    form.td(login_text_area)
+    form.tr()
+    form.td(password_label)
+    form.td(password_text_area)
+    form.tr()
+    form.td(login_button, colspan=2)
+
+    auth_panel = GuiPanel(main_form.surface.get_size(), auth_gui, form)
+    main_form.add_gui(auth_panel)
+
+    main()
