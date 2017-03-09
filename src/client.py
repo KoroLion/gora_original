@@ -6,7 +6,6 @@
 import pygame
 import math
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 from time import sleep
 
@@ -64,7 +63,7 @@ def get_angle(pl_pos: Point, size: Size, m_pos: Point) -> float:
 
 class Client(object):
     """!
-    @brief Храним данные для взаимодействия потоков и базовые команды клиента
+    @brief данные для взаимодействия потоков и основные функции для работы с сетью
     """
 
     def __init__(self):
@@ -82,7 +81,7 @@ class Client(object):
 
     def connect(self):
         con = self.loop.create_datagram_endpoint(
-            lambda: EchoClientProtocol(self.loop),
+            lambda: UdpClientProtocol(self.loop),
             remote_addr=(client.ip, client.port))
 
         if not self.connected():
@@ -178,7 +177,10 @@ def main():
     client.disconnect()
 
 
-class EchoClientProtocol(asyncio.DatagramProtocol):
+class UdpClientProtocol(asyncio.DatagramProtocol):
+    """!
+    @brief "обёртка" над сокетами для удобной работы с сетью
+    """
     def __init__(self, loop):
         self.loop = loop
         self.transport = None
@@ -244,6 +246,10 @@ class EchoClientProtocol(asyncio.DatagramProtocol):
 
 
 async def disconnect_check():
+    """!
+    @brief проверка необходимости отключения
+    """
+    # периодически проверяем: не нужно ли отключиться
     while client.connected():
         await asyncio.sleep(1)
 
@@ -251,8 +257,12 @@ async def disconnect_check():
 
 
 def connect():
+    """!
+    @brief подключение к серверу
+    """
     client.login = login_input.value
     client.skin = skin_select.value
+    # проверяем корректность заполнения полей
     if ':' in addr_input.value:
         addr = addr_input.value.split(':', 1)
     else:
@@ -271,6 +281,7 @@ def connect():
         info_label.set_text('You have not selected a skin!')
         return False
 
+    # пытаемся подключиться
     c_attempts = 0
     print('Trying to connect...')
     info_text = 'Connecting to {}:{}'.format(client.ip, client.port)
@@ -292,13 +303,18 @@ def connect():
 
 
 def connect_action():
-    # создаём и запускаем поток для работы с сетью
+    """!
+    @brief создание и запуск потока, работающего с сетью
+    """
     net = Thread(target=connect)
     net.daemon = True
     net.start()
 
 
 def save_settings():
+    """!
+    @brief сохранение настроек
+    """
     config = configparser.ConfigParser({})
     config.add_section('main_settings')
 
@@ -311,6 +327,9 @@ def save_settings():
 
 
 def load_settings():
+    """!
+    @brief загрузка настроек
+    """
     config = configparser.ConfigParser({})
     config.read(CONFIG_FILE)
 
@@ -323,6 +342,9 @@ def load_settings():
 
 
 def auth_panel_init():
+    """!
+    @brief сборка панели авторизации
+    """
     addr_label = gui.Label('Server: ')
 
     title_label = gui.Label('GORA')
@@ -368,7 +390,7 @@ if __name__ == "__main__":
     game = Game(res)
     main_form.add_object(game)
 
-    # панель входа
+    # создаём панель входа
     auth_gui = gui.Desktop(theme=gui.Theme('gora_theme'))
     form = gui.Table(height=250, width=320)
 
