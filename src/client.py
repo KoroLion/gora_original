@@ -27,6 +27,7 @@ from classes.core import Core
 from classes.game import Game
 from classes.game_object import Robot
 from classes.gui_block import GuiPanel
+from classes.texture import Texture
 
 DEFAULT_PORT = 22000
 TRACKING_CAMERA = True
@@ -225,11 +226,11 @@ class UdpClientProtocol(asyncio.DatagramProtocol):
 
                 if not game.players.get(pid):
                     if player[J_SKIN] == SKIN_BLUE:
-                        skin = res.textures.robot_blue
+                        skin = Texture("images/robots/textures/robot_blue.png")
                     elif player[J_SKIN] == SKIN_ORANGE:
-                        skin = res.textures.robot_orange
+                        skin = Texture("images/robots/textures/robot_orange.png")
                     else:
-                        skin = res.textures.robot_green
+                        skin = Texture("images/robots/textures/robot_green.png")
 
                     new_player = {pid: Robot(Point(0, 0), skin, angle=0)}
                     new_player[pid].texture.set_size(Size(30, 30))

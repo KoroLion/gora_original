@@ -29,6 +29,7 @@ class Server(object):
 
     def kick_player(self, login: str):
         addr = self.get_player_addr(login)
+        self.delete_player(addr)
         if addr:
             self.kick_addr(addr)
             return True
