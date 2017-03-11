@@ -73,6 +73,7 @@ class Client(object):
         self.transport = None
         self.protocol = None
         self.loop = asyncio.get_event_loop()
+        self.input = True
 
         self.login = ''
         self.skin = None
@@ -134,26 +135,29 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         client.disconnect()
-                    if event.key == pygame.K_w:
-                        client.send([BUTTON_DOWN, B_GO_TOP])
-                    if event.key == pygame.K_s:
-                        client.send([BUTTON_DOWN, B_GO_BOTTOM])
-                    if event.key == pygame.K_a:
-                        client.send([BUTTON_DOWN, B_GO_LEFT])
-                    if event.key == pygame.K_d:
-                        client.send([BUTTON_DOWN, B_GO_RIGHT])
+                    if client.input:
+                        if event.key == pygame.K_w:
+                            client.send([BUTTON_DOWN, B_GO_TOP])
+                        if event.key == pygame.K_s:
+                            client.send([BUTTON_DOWN, B_GO_BOTTOM])
+                        if event.key == pygame.K_a:
+                            client.send([BUTTON_DOWN, B_GO_LEFT])
+                        if event.key == pygame.K_d:
+                            client.send([BUTTON_DOWN, B_GO_RIGHT])
 
                 elif event.type == pygame.KEYUP:
-                    if event.key == pygame.K_w:
-                        client.send([BUTTON_UP, B_GO_TOP])
-                    if event.key == pygame.K_s:
-                        client.send([BUTTON_UP, B_GO_BOTTOM])
-                    if event.key == pygame.K_a:
-                        client.send([BUTTON_UP, B_GO_LEFT])
-                    if event.key == pygame.K_d:
-                        client.send([BUTTON_UP, B_GO_RIGHT])
+                    if client.input:
+                        if event.key == pygame.K_w:
+                            client.send([BUTTON_UP, B_GO_TOP])
+                        if event.key == pygame.K_s:
+                            client.send([BUTTON_UP, B_GO_BOTTOM])
+                        if event.key == pygame.K_a:
+                            client.send([BUTTON_UP, B_GO_LEFT])
+                        if event.key == pygame.K_d:
+                            client.send([BUTTON_UP, B_GO_RIGHT])
                 elif event.type == pygame.MOUSEMOTION:
-                    client.send([ANGLE, client.angle])
+                    if client.input:
+                        client.send([ANGLE, client.angle])
 
         if game.players.get(client.id):
             # получаем объект игрока (который играет с этого клиента =) )
@@ -393,6 +397,15 @@ def auth_panel_init():
     form.tr()
     form.td(login_button, colspan=2)
 
+
+def message_input_focus():
+    client.input = False
+
+
+def message_input_blur():
+    client.input = True
+
+
 if __name__ == "__main__":
     pygame.init()
 
@@ -423,6 +436,8 @@ if __name__ == "__main__":
     chat_area = gui.TextArea(width=300, height=150)
     chat_area.editable = False
     message_input = gui.Input(width=199)
+    message_input.connect(gui.FOCUS, message_input_focus)
+    message_input.connect(gui.BLUR, message_input_blur)
     send_button = gui.Button('Отправить', height=25)
 
     game_gui_container = gui.Container(width=main_form.surface.get_size()[0], height=main_form.surface.get_size()[1])
