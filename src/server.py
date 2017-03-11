@@ -1,5 +1,6 @@
 import asyncio
 from threading import Thread
+from time import time
 
 try:
     import ujson as json
@@ -29,10 +30,13 @@ class Server(object):
     def kick_player(self, login: str):
         addr = self.get_player_addr(login)
         if addr:
-            self.send([KICK], addr)
+            self.kick_addr(addr)
             return True
         else:
             return False
+
+    def kick_addr(self, addr: tuple):
+        self.send([KICK], addr)
 
     def get_player_addr(self, login: str):
         login = login.lower()
@@ -98,6 +102,8 @@ class PlayerInfo:
         self.login = login
         self.skin = skin
 
+        self.net_activity = time()
+
         # для игнорирования отпускания кнопки после нажатия противоположной ей
         # чтобы игрок не остановился после отпускания D, если была нажата A
         self.ignore_command = {C_GO_TOP_UP: False, C_GO_BOTTOM_DOWN: False, C_GO_LEFT_UP: False, C_GO_RIGHT_UP: False}
@@ -119,98 +125,102 @@ class UdpServerProtocol(asyncio.DatagramProtocol):
     def datagram_received(self, data, addr):
         data = data.decode()
 
+        # проверяем корректность присланных данных
         try:
             data = json.loads(data)
-            correct_data = True
         except json:
             print('#ERROR: incorrect format of input data')
-            correct_data = False
+            return None
 
-        if correct_data:
-            command = data[0]
-            players = server.players
-            player = server.players.get(addr)
+        command = data[0]
+        players = server.players
+        player = server.players.get(addr)
 
-            # подключение, отключение и передача данных
-            if command == CONNECT:
-                pid = server.get_new_pid()
-                print('{} connected ({}:{})!'.format(data[1], addr[0], addr[1]))
-                new_player = {addr: PlayerInfo(pid, Point(100, 100), Point(0, 0),
-                                                login=data[1],
-                                                skin=data[2],
-                                                angle=0)
-                              }
-                players.update(new_player)
+        # подключение, отключение и передача данных
+        if command == CONNECT:
+            pid = server.get_new_pid()
+            print('{} connected ({}:{})!'.format(data[1], addr[0], addr[1]))
+            new_player = {addr: PlayerInfo(pid, Point(100, 100), Point(0, 0),
+                                            login=data[1],
+                                            skin=data[2],
+                                            angle=0)
+                          }
+            players.update(new_player)
 
-                server.send([ID, pid], addr)
-            elif command == DISCONNECT:
-                login = server.players[addr].login
-                print('{} disconnected ({}:{})!'.format(login, addr[0], addr[1]))
-                server.delete_player(addr)
-            elif command == BUTTON_DOWN:
-                button = data[1]
-                if button == B_GO_TOP:
-                    player.ignore_command[B_GO_TOP] = False
-                    player.ignore_command[B_GO_BOTTOM] = True
-                    player.speed.y = -player.speed_amount
-                elif button == B_GO_BOTTOM:
-                    player.ignore_command[B_GO_TOP] = True
-                    player.ignore_command[B_GO_BOTTOM] = False
-                    player.speed.y = player.speed_amount
-                elif button == B_GO_LEFT:
-                    player.ignore_command[B_GO_LEFT] = False
-                    player.ignore_command[B_GO_RIGHT] = True
-                    player.speed.x = -player.speed_amount
-                elif button == B_GO_RIGHT:
-                    player.ignore_command[B_GO_LEFT] = True
-                    player.ignore_command[B_GO_RIGHT] = False
-                    player.speed.x = player.speed_amount
-            elif command == BUTTON_UP:
-                button = data[1]
-                if button == B_GO_TOP and not player.ignore_command[B_GO_TOP] or \
-                        button == B_GO_BOTTOM and not player.ignore_command[B_GO_BOTTOM]:
-                    player.speed.y = 0
-                elif button == B_GO_LEFT and not player.ignore_command[B_GO_LEFT] or \
-                        button == B_GO_RIGHT and not player.ignore_command[B_GO_RIGHT]:
-                    player.speed.x = 0
-            elif command == ANGLE:
-                # получили информацию о направление взгляда игрока
-                new_angle = data[1]
-                player = server.players[addr]
-                player.angle = new_angle
-            elif command == MESSAGE:
-                # пришло сообщение от игрока
-                login = server.players[addr].login
-                print('{}: {}'.format(login, data[1]))
-                server.notify_all([MESSAGE, data[1], login])
+            server.send([ID, pid], addr)
 
-            # обработка нажатий клавиш
-            elif command == C_GO_TOP_DOWN:
-                player.ignore_command[C_GO_TOP_UP] = False
-                player.ignore_command[C_GO_BOTTOM_UP] = True
+        # если игрока не существует и он не был создан (см. выше)
+        if not player:
+            server.kick_addr(addr)
+            return None
+
+        if command == DISCONNECT:
+            login = server.players[addr].login
+            print('{} disconnected ({}:{})!'.format(login, addr[0], addr[1]))
+            server.delete_player(addr)
+        elif command == BUTTON_DOWN:
+            button = data[1]
+            if button == B_GO_TOP:
+                player.ignore_command[B_GO_TOP] = False
+                player.ignore_command[B_GO_BOTTOM] = True
                 player.speed.y = -player.speed_amount
-            elif command == C_GO_BOTTOM_DOWN:
-                player.ignore_command[C_GO_TOP_UP] = True
-                player.ignore_command[C_GO_BOTTOM_UP] = False
+            elif button == B_GO_BOTTOM:
+                player.ignore_command[B_GO_TOP] = True
+                player.ignore_command[B_GO_BOTTOM] = False
                 player.speed.y = player.speed_amount
-            elif command == C_GO_LEFT_DOWN:
-                player.ignore_command[C_GO_RIGHT_UP] = True
-                player.ignore_command[C_GO_LEFT_UP] = False
+            elif button == B_GO_LEFT:
+                player.ignore_command[B_GO_LEFT] = False
+                player.ignore_command[B_GO_RIGHT] = True
                 player.speed.x = -player.speed_amount
-            elif command == C_GO_RIGHT_DOWN:
-                player.ignore_command[C_GO_RIGHT_UP] = False
-                player.ignore_command[C_GO_LEFT_UP] = True
+            elif button == B_GO_RIGHT:
+                player.ignore_command[B_GO_LEFT] = True
+                player.ignore_command[B_GO_RIGHT] = False
                 player.speed.x = player.speed_amount
+        elif command == BUTTON_UP:
+            button = data[1]
+            if button == B_GO_TOP and not player.ignore_command[B_GO_TOP] or \
+                    button == B_GO_BOTTOM and not player.ignore_command[B_GO_BOTTOM]:
+                player.speed.y = 0
+            elif button == B_GO_LEFT and not player.ignore_command[B_GO_LEFT] or \
+                    button == B_GO_RIGHT and not player.ignore_command[B_GO_RIGHT]:
+                player.speed.x = 0
+        elif command == ANGLE:
+            # получили информацию о направление взгляда игрока
+            new_angle = data[1]
+            player.angle = new_angle
+        elif command == MESSAGE:
+            # пришло сообщение от игрока
+            login = server.players[addr].login
+            print('{}: {}'.format(login, data[1]))
+            server.notify_all([MESSAGE, data[1], login])
 
-            # обработка отпускания клавиш
-            elif command == C_GO_TOP_UP and not player.ignore_command[C_GO_TOP_UP]:
-                player.speed.y = 0
-            elif command == C_GO_BOTTOM_UP and not player.ignore_command[C_GO_BOTTOM_UP]:
-                player.speed.y = 0
-            elif command == C_GO_LEFT_UP and not player.ignore_command[C_GO_LEFT_UP]:
-                player.speed.x = 0
-            elif command == C_GO_RIGHT_UP and not player.ignore_command[C_GO_RIGHT_UP]:
-                player.speed.x = 0
+        # обработка нажатий клавиш
+        elif command == C_GO_TOP_DOWN:
+            player.ignore_command[C_GO_TOP_UP] = False
+            player.ignore_command[C_GO_BOTTOM_UP] = True
+            player.speed.y = -player.speed_amount
+        elif command == C_GO_BOTTOM_DOWN:
+            player.ignore_command[C_GO_TOP_UP] = True
+            player.ignore_command[C_GO_BOTTOM_UP] = False
+            player.speed.y = player.speed_amount
+        elif command == C_GO_LEFT_DOWN:
+            player.ignore_command[C_GO_RIGHT_UP] = True
+            player.ignore_command[C_GO_LEFT_UP] = False
+            player.speed.x = -player.speed_amount
+        elif command == C_GO_RIGHT_DOWN:
+            player.ignore_command[C_GO_RIGHT_UP] = False
+            player.ignore_command[C_GO_LEFT_UP] = True
+            player.speed.x = player.speed_amount
+
+        # обработка отпускания клавиш
+        elif command == C_GO_TOP_UP and not player.ignore_command[C_GO_TOP_UP]:
+            player.speed.y = 0
+        elif command == C_GO_BOTTOM_UP and not player.ignore_command[C_GO_BOTTOM_UP]:
+            player.speed.y = 0
+        elif command == C_GO_LEFT_UP and not player.ignore_command[C_GO_LEFT_UP]:
+            player.speed.x = 0
+        elif command == C_GO_RIGHT_UP and not player.ignore_command[C_GO_RIGHT_UP]:
+            player.speed.x = 0
 
 async def game():
     while not server.closed():
@@ -233,22 +243,24 @@ async def game():
 
 def console():
     while not server.closed():
-        data = input().split()
-        command = data[0]
-        args = data[1:]
+        data = input()
+        if len(data) > 0:
+            data = data.split()
+            command = data[0]
+            args = data[1:]
 
-        if command == 'kick':
-            if len(args) > 0 and len(args[0]) > 0:
-                if server.kick_player(args[0]):
-                    print("{} has been kicked from the server!".format(args[0]))
+            if command == 'kick':
+                if len(args) > 0 and len(args[0]) > 0:
+                    if server.kick_player(args[0]):
+                        print("{} has been kicked from the server!".format(args[0]))
+                    else:
+                        print("{} was not found on this server!".format(args[0]))
                 else:
-                    print("{} was not found on this server!".format(args[0]))
+                    print('Usage: kick <login>')
+            elif command == 'exit':
+                server.close()
             else:
-                print('Usage: kick <login>')
-        elif command == 'exit':
-            server.close()
-        else:
-            print('Unknown command!')
+                print('Unknown command!')
 
 
 if __name__ == "__main__":
