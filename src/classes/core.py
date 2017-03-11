@@ -61,7 +61,8 @@ class Core(object):
 
     def gui_events(self, event):
         for gui_panel in self.guis:
-            gui_panel.gui.event(event)
+            if gui_panel.visible:
+                gui_panel.gui.event(event)
 
     def render_objects(self):
         """!

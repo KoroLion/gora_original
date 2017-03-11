@@ -395,7 +395,7 @@ if __name__ == "__main__":
 
     # создаём панель входа
     auth_gui = gui.Desktop(theme=gui.Theme('gora_theme'))
-    form = gui.Table(height=250, width=320)
+    form = gui.Table(height=250, width=320)  # todo: Возможно лучше использовать gui.Form?
 
     info_label = gui.Label('')
     addr_input = gui.Input(width=140, height=20)
