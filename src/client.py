@@ -348,20 +348,20 @@ def auth_panel_init():
     """!
     @brief сборка панели авторизации
     """
-    addr_label = gui.Label('Server: ')
+    addr_label = gui.Label('Адрес: ')
 
     title_label = gui.Label('GORA')
-    title_label.set_font(pygame.font.Font('Tahoma.ttf', 30))
-    login_button = gui.Button('Join', width=140, height=40)
+    title_label.set_font(pygame.font.SysFont('Tahoma', 30))
+    login_button = gui.Button('Присоединиться', width=140, height=40)
 
-    skin_select.add('Blue', SKIN_BLUE)
-    skin_select.add('Green', SKIN_GREEN)
-    skin_select.add('Orange', SKIN_ORANGE)
-    skin_label = gui.Label('Skin:')
+    skin_select.add('Синий', SKIN_BLUE)
+    skin_select.add('Зелёный', SKIN_GREEN)
+    skin_select.add('Оранжевый', SKIN_ORANGE)
+    skin_label = gui.Label('Скин:')
 
     login_button.connect(gui.CLICK, connect_action)
-    login_label = gui.Label('Login: ')
-    password_label = gui.Label('Password: ')
+    login_label = gui.Label('Логин: ')
+    password_label = gui.Label('Пароль: ')
 
     form.tr()
     form.td(title_label, colspan=2)
