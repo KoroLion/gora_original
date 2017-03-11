@@ -257,11 +257,12 @@ class UdpClientProtocol(asyncio.DatagramProtocol):
 
 async def disconnect_check():
     """!
-    @brief проверка необходимости отключения
+    @brief проверка необходимости отключения + пинг сервера
     """
     # периодически проверяем: не нужно ли отключиться
     while client.connected():
-        await asyncio.sleep(0.5)
+        client.send([PING])
+        await asyncio.sleep(1)
 
     game_gui_panel.visible = False
     auth_panel.visible = True

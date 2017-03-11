@@ -1,6 +1,6 @@
 import asyncio
 from threading import Thread
-from time import time
+from time import time, sleep
 
 try:
     import ujson as json
@@ -159,6 +159,9 @@ class UdpServerProtocol(asyncio.DatagramProtocol):
             login = server.players[addr].login
             print('{} disconnected ({}:{})!'.format(login, addr[0], addr[1]))
             server.delete_player(addr)
+        elif command == PING:
+            player.net_activity = time()
+            server.send([PING], addr)
         elif command == BUTTON_DOWN:
             button = data[1]
             if button == B_GO_TOP:
@@ -264,6 +267,21 @@ def console():
                 print('Unknown command!')
 
 
+def kicker():
+    while not server.closed():
+        logins_to_kick = []
+        for addr in server.players:
+            player = server.players[addr]
+            if (time() - player.net_activity) > 5:
+                logins_to_kick.append(player.login)
+
+        # иначе после кика игрока изменится server.players и будет ошибка
+        for login in logins_to_kick:
+            server.kick_player(login)
+            print('{} have had troubles with connection and was kicked!'.format(login))
+
+        sleep(5)
+
 if __name__ == "__main__":
     print('GORA server alpha 0.3 (by Infit team)')
     asyncio_loop = asyncio.get_event_loop()
@@ -276,6 +294,11 @@ if __name__ == "__main__":
         console_thread = Thread(target=console)
         console_thread.daemon = True
         console_thread.start()
+
+        # удалятор неотзывающихся игроков
+        kicker = Thread(target=kicker)
+        kicker.daemon = True
+        kicker.start()
 
         print("Starting game loop...")
         print("Done!")

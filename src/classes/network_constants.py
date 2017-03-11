@@ -30,6 +30,7 @@ GET_DATA = 6
 DISCONNECT = 7
 ANGLE = 8
 MESSAGE = 12
+PING = 14
 # сервер -> клиент
 DATA = 9
 ID = 10
