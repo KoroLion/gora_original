@@ -7,7 +7,7 @@ import pygame
 import math
 import asyncio
 from threading import Thread
-from time import sleep
+from time import sleep, time
 
 import configparser
 
@@ -80,6 +80,8 @@ class Client(object):
         self.skin = None
         self.ip = ''
         self.port = DEFAULT_PORT
+        self.ping_send_time = time()
+        self.ping = 0
 
     def connect(self):
         con = self.loop.create_datagram_endpoint(
@@ -245,6 +247,8 @@ class UdpClientProtocol(asyncio.DatagramProtocol):
             client.disconnect()
         elif command == MESSAGE:
             chat_area.value += '{}: {}'.format(data[2], data[1]) + '\n'
+        elif command == PING:
+            client.ping = round((time() - client.ping_send_time) * 1000)  # мс
 
     def error_received(self, exc):
         print('Error received:', exc)
@@ -261,7 +265,9 @@ async def disconnect_check():
     """
     # периодически проверяем: не нужно ли отключиться
     while client.connected():
+        client.ping_send_time = time()
         client.send([PING])
+        ping_label.value = '{} ms'.format(client.ping)
         await asyncio.sleep(1)
 
     game_gui_panel.visible = False
@@ -441,11 +447,13 @@ if __name__ == "__main__":
     message_input.connect(gui.FOCUS, message_input_focus)
     message_input.connect(gui.BLUR, message_input_blur)
     send_button = gui.Button('Отправить', height=25)
+    ping_label = gui.Label('0 мс                  ', width=100)
 
     game_gui_container = gui.Container(width=main_form.surface.get_size()[0], height=main_form.surface.get_size()[1])
     game_gui_container.add(chat_area, 0, 0)
     game_gui_container.add(message_input, 0, 155)
     game_gui_container.add(send_button, 210, 155)
+    game_gui_container.add(ping_label, 2, 2)
     game_gui_panel = GuiPanel(main_form.surface.get_size(), game_gui_app, game_gui_container,
                               background_c=pygame.Color("#00000000"))
     main_form.add_gui(game_gui_panel)
