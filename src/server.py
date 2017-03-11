@@ -53,6 +53,12 @@ class Server(object):
             except OSError:
                 return False
 
+    def notify_all(self, to_send):
+        if not self.closed():
+            data = json.dumps(to_send)
+            for addr in self.players:
+                self.transport.sendto(data.encode(), addr)
+
     def send(self, to_send, addr):
         if not self.closed():
             data = json.dumps(to_send)
@@ -168,9 +174,15 @@ class UdpServerProtocol(asyncio.DatagramProtocol):
                         button == B_GO_RIGHT and not player.ignore_command[B_GO_RIGHT]:
                     player.speed.x = 0
             elif command == ANGLE:
+                # получили информацию о направление взгляда игрока
                 new_angle = data[1]
                 player = server.players[addr]
                 player.angle = new_angle
+            elif command == MESSAGE:
+                # пришло сообщение от игрока
+                login = server.players[addr].login
+                print('{}: {}'.format(login, data[1]))
+                server.notify_all([MESSAGE, data[1], login])
 
             # обработка нажатий клавиш
             elif command == C_GO_TOP_DOWN:

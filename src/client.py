@@ -238,6 +238,8 @@ class UdpClientProtocol(asyncio.DatagramProtocol):
         elif command == KICK:
             info_label.set_text('You have been kicked from the server!')
             client.disconnect()
+        elif command == MESSAGE:
+            chat_area.value += '{}: {}'.format(data[2], data[1]) + '\n'
 
     def error_received(self, exc):
         print('Error received:', exc)
@@ -254,15 +256,23 @@ async def disconnect_check():
     """
     # периодически проверяем: не нужно ли отключиться
     while client.connected():
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
 
+    game_gui_panel.visible = False
     auth_panel.visible = True
+
+
+def send_message():
+    if len(message_input.value) > 0:
+        client.send([MESSAGE, message_input.value])
+        message_input.value = ''
 
 
 def connect():
     """!
     @brief подключение к серверу
     """
+    send_button.connect(gui.CLICK, send_message)
     client.login = login_input.value
     client.skin = skin_select.value
     # проверяем корректность заполнения полей
@@ -299,6 +309,7 @@ def connect():
 
     if client.connected():
         auth_panel.visible = False
+        game_gui_panel.visible = True
         client.loop.run_until_complete(disconnect_check())
     else:
         print('Server {}:{} is unavailable!'.format(client.ip, client.port))
@@ -406,6 +417,22 @@ if __name__ == "__main__":
     auth_panel_init()
     auth_panel = GuiPanel(main_form.surface.get_size(), auth_gui, form)
     main_form.add_gui(auth_panel)
+
+    # создаём панель игрового интерфейса (карта, чат)
+    game_gui_app = gui.Desktop(theme=gui.Theme('gora_theme'))
+    chat_area = gui.TextArea(width=300, height=150)
+    chat_area.editable = False
+    message_input = gui.Input(width=199)
+    send_button = gui.Button('Отправить', height=25)
+
+    game_gui_container = gui.Container(width=main_form.surface.get_size()[0], height=main_form.surface.get_size()[1])
+    game_gui_container.add(chat_area, 0, 0)
+    game_gui_container.add(message_input, 0, 155)
+    game_gui_container.add(send_button, 210, 155)
+    game_gui_panel = GuiPanel(main_form.surface.get_size(), game_gui_app, game_gui_container,
+                              background_c=pygame.Color("#00000000"))
+    main_form.add_gui(game_gui_panel)
+    game_gui_panel.visible = False
 
     load_settings()
 
