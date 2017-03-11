@@ -7,7 +7,7 @@ import pygame
 import math
 import asyncio
 from threading import Thread
-from time import sleep
+from time import sleep, time
 
 import configparser
 
@@ -27,6 +27,7 @@ from classes.core import Core
 from classes.game import Game
 from classes.game_object import Robot
 from classes.gui_block import GuiPanel
+from classes.texture import Texture
 
 DEFAULT_PORT = 22000
 TRACKING_CAMERA = True
@@ -73,11 +74,14 @@ class Client(object):
         self.transport = None
         self.protocol = None
         self.loop = asyncio.get_event_loop()
+        self.input = True
 
         self.login = ''
         self.skin = None
         self.ip = ''
         self.port = DEFAULT_PORT
+        self.ping_send_time = time()
+        self.ping = 0
 
     def connect(self):
         con = self.loop.create_datagram_endpoint(
@@ -134,26 +138,29 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         client.disconnect()
-                    if event.key == pygame.K_w:
-                        client.send([BUTTON_DOWN, B_GO_TOP])
-                    if event.key == pygame.K_s:
-                        client.send([BUTTON_DOWN, B_GO_BOTTOM])
-                    if event.key == pygame.K_a:
-                        client.send([BUTTON_DOWN, B_GO_LEFT])
-                    if event.key == pygame.K_d:
-                        client.send([BUTTON_DOWN, B_GO_RIGHT])
+                    if client.input:
+                        if event.key == pygame.K_w:
+                            client.send([BUTTON_DOWN, B_GO_TOP])
+                        if event.key == pygame.K_s:
+                            client.send([BUTTON_DOWN, B_GO_BOTTOM])
+                        if event.key == pygame.K_a:
+                            client.send([BUTTON_DOWN, B_GO_LEFT])
+                        if event.key == pygame.K_d:
+                            client.send([BUTTON_DOWN, B_GO_RIGHT])
 
                 elif event.type == pygame.KEYUP:
-                    if event.key == pygame.K_w:
-                        client.send([BUTTON_UP, B_GO_TOP])
-                    if event.key == pygame.K_s:
-                        client.send([BUTTON_UP, B_GO_BOTTOM])
-                    if event.key == pygame.K_a:
-                        client.send([BUTTON_UP, B_GO_LEFT])
-                    if event.key == pygame.K_d:
-                        client.send([BUTTON_UP, B_GO_RIGHT])
+                    if client.input:
+                        if event.key == pygame.K_w:
+                            client.send([BUTTON_UP, B_GO_TOP])
+                        if event.key == pygame.K_s:
+                            client.send([BUTTON_UP, B_GO_BOTTOM])
+                        if event.key == pygame.K_a:
+                            client.send([BUTTON_UP, B_GO_LEFT])
+                        if event.key == pygame.K_d:
+                            client.send([BUTTON_UP, B_GO_RIGHT])
                 elif event.type == pygame.MOUSEMOTION:
-                    client.send([ANGLE, client.angle])
+                    if client.input:
+                        client.send([ANGLE, client.angle])
 
         if game.players.get(client.id):
             # получаем объект игрока (который играет с этого клиента =) )
@@ -221,11 +228,11 @@ class UdpClientProtocol(asyncio.DatagramProtocol):
 
                 if not game.players.get(pid):
                     if player[J_SKIN] == SKIN_BLUE:
-                        skin = res.textures.robot_blue
+                        skin = Texture("images/robots/textures/robot_blue.png")
                     elif player[J_SKIN] == SKIN_ORANGE:
-                        skin = res.textures.robot_orange
+                        skin = Texture("images/robots/textures/robot_orange.png")
                     else:
-                        skin = res.textures.robot_green
+                        skin = Texture("images/robots/textures/robot_green.png")
 
                     new_player = {pid: Robot(Point(0, 0), skin, angle=0)}
                     new_player[pid].texture.set_size(Size(30, 30))
@@ -238,6 +245,10 @@ class UdpClientProtocol(asyncio.DatagramProtocol):
         elif command == KICK:
             info_label.set_text('You have been kicked from the server!')
             client.disconnect()
+        elif command == MESSAGE:
+            chat_area.value += '{}: {}'.format(data[2], data[1]) + '\n'
+        elif command == PING:
+            client.ping = round((time() - client.ping_send_time) * 1000)  # мс
 
     def error_received(self, exc):
         print('Error received:', exc)
@@ -250,19 +261,30 @@ class UdpClientProtocol(asyncio.DatagramProtocol):
 
 async def disconnect_check():
     """!
-    @brief проверка необходимости отключения
+    @brief проверка необходимости отключения + пинг сервера
     """
     # периодически проверяем: не нужно ли отключиться
     while client.connected():
+        client.ping_send_time = time()
+        client.send([PING])
+        ping_label.value = '{} ms'.format(client.ping)
         await asyncio.sleep(1)
 
+    game_gui_panel.visible = False
     auth_panel.visible = True
+
+
+def send_message():
+    if len(message_input.value) > 0:
+        client.send([MESSAGE, message_input.value])
+        message_input.value = ''
 
 
 def connect():
     """!
     @brief подключение к серверу
     """
+    send_button.connect(gui.CLICK, send_message)
     client.login = login_input.value
     client.skin = skin_select.value
     # проверяем корректность заполнения полей
@@ -299,6 +321,7 @@ def connect():
 
     if client.connected():
         auth_panel.visible = False
+        game_gui_panel.visible = True
         client.loop.run_until_complete(disconnect_check())
     else:
         print('Server {}:{} is unavailable!'.format(client.ip, client.port))
@@ -348,20 +371,20 @@ def auth_panel_init():
     """!
     @brief сборка панели авторизации
     """
-    addr_label = gui.Label('Server: ')
+    addr_label = gui.Label('Адрес: ')
 
     title_label = gui.Label('GORA')
-    title_label.set_font(pygame.font.Font('Tahoma.ttf', 30))
-    login_button = gui.Button('Join', width=140, height=40)
+    title_label.set_font(pygame.font.SysFont('Tahoma', 30))
+    login_button = gui.Button('Присоединиться', width=140, height=40)
 
-    skin_select.add('Blue', SKIN_BLUE)
-    skin_select.add('Green', SKIN_GREEN)
-    skin_select.add('Orange', SKIN_ORANGE)
-    skin_label = gui.Label('Skin:')
+    skin_select.add('Синий', SKIN_BLUE)
+    skin_select.add('Зелёный', SKIN_GREEN)
+    skin_select.add('Оранжевый', SKIN_ORANGE)
+    skin_label = gui.Label('Скин:')
 
     login_button.connect(gui.CLICK, connect_action)
-    login_label = gui.Label('Login: ')
-    password_label = gui.Label('Password: ')
+    login_label = gui.Label('Логин: ')
+    password_label = gui.Label('Пароль: ')
 
     form.tr()
     form.td(title_label, colspan=2)
@@ -382,6 +405,15 @@ def auth_panel_init():
     form.tr()
     form.td(login_button, colspan=2)
 
+
+def message_input_focus():
+    client.input = False
+
+
+def message_input_blur():
+    client.input = True
+
+
 if __name__ == "__main__":
     pygame.init()
 
@@ -395,7 +427,7 @@ if __name__ == "__main__":
 
     # создаём панель входа
     auth_gui = gui.Desktop(theme=gui.Theme('gora_theme'))
-    form = gui.Table(height=250, width=320)
+    form = gui.Table(height=250, width=320)  # todo: Возможно лучше использовать gui.Form?
 
     info_label = gui.Label('')
     addr_input = gui.Input(width=140, height=20)
@@ -406,6 +438,26 @@ if __name__ == "__main__":
     auth_panel_init()
     auth_panel = GuiPanel(main_form.surface.get_size(), auth_gui, form)
     main_form.add_gui(auth_panel)
+
+    # создаём панель игрового интерфейса (карта, чат)
+    game_gui_app = gui.Desktop(theme=gui.Theme('gora_theme'))
+    chat_area = gui.TextArea(width=300, height=150)
+    chat_area.editable = False
+    message_input = gui.Input(width=199)
+    message_input.connect(gui.FOCUS, message_input_focus)
+    message_input.connect(gui.BLUR, message_input_blur)
+    send_button = gui.Button('Отправить', height=25)
+    ping_label = gui.Label('0 мс                  ', width=100)
+
+    game_gui_container = gui.Container(width=main_form.surface.get_size()[0], height=main_form.surface.get_size()[1])
+    game_gui_container.add(chat_area, 0, 0)
+    game_gui_container.add(message_input, 0, 155)
+    game_gui_container.add(send_button, 210, 155)
+    game_gui_container.add(ping_label, 2, 2)
+    game_gui_panel = GuiPanel(main_form.surface.get_size(), game_gui_app, game_gui_container,
+                              background_c=pygame.Color("#00000000"))
+    main_form.add_gui(game_gui_panel)
+    game_gui_panel.visible = False
 
     load_settings()
 
