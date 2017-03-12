@@ -149,9 +149,9 @@ class UdpServerProtocol(asyncio.DatagramProtocol):
             players.update(new_player)
 
             server.send([ID, pid], addr)
-
         # если игрока не существует и он не был создан (см. выше)
-        if not player:
+        elif not player:
+            print('#ERROR: Player for {} not found - kicking...'.format(addr[0]))
             server.kick_addr(addr)
             return None
 
