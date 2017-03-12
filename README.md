@@ -17,8 +17,13 @@
 
 ### Запуск проекта
 
-#### Настройка окружения (Yandex):
-> - virtualenv -p python3 venv_python3
+#### Настройка окружения (Yandex)
+> - sudo add-apt-repository ppa:jonathonf/python-3.6
+> - sudo apt-get update
+> - sudo apt-get install python3.6
+
+#### Настройка окружения (Yandex)
+> - virtualenv -p python3.6 venv_python3.6
 > - source venv_python3/bin/activate
 
 #### Установка pygame и pylint:
