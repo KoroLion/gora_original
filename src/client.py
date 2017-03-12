@@ -365,6 +365,7 @@ def save_settings():
     config.set('main_settings', 'address', addr_input.value)
     config.set('main_settings', 'login', login_input.value)
     config.set('main_settings', 'skin', str(skin_select.value))
+    config.set('main_settings', 'fullscreen', '1' if len(fullscreen_checkbox_g.value) > 0 else '0')
 
     with open(CONFIG_FILE, 'w') as configfile:
         config.write(configfile)
@@ -381,6 +382,10 @@ def load_settings():
         addr_input.value = config.get('main_settings', 'address')
         login_input.value = config.get('main_settings', 'login')
         skin_select.value = int(config.get('main_settings', 'skin'))
+        fullscreen = bool(int(config.get('main_settings', 'fullscreen')))
+        if fullscreen:
+            main_form.set_fullscreen(True)
+            fullscreen_checkbox.click()
     except BaseException:
         print('#ERROR: Config reading error!')
 
@@ -393,7 +398,8 @@ def auth_panel_init():
 
     title_label = gui.Label('GORA')
     title_label.set_font(pygame.font.SysFont('Tahoma', 30))
-    login_button = gui.Button('Присоединиться', width=140, height=40)
+    login_button = gui.Button('Присоединиться', width=130, height=35)
+    exit_button = gui.Button('Выйти', width=130, height=35)
 
     skin_select.add('Синий', SKIN_BLUE)
     skin_select.add('Зелёный', SKIN_GREEN)
@@ -401,8 +407,10 @@ def auth_panel_init():
     skin_label = gui.Label('Скин:')
 
     login_button.connect(gui.CLICK, connect_action)
+    exit_button.connect(gui.CLICK, exit_button_click)
     login_label = gui.Label('Логин: ')
     password_label = gui.Label('Пароль: ')
+    fullscreen_label = gui.Label('Полный экран')
 
     form.tr()
     form.td(title_label, colspan=2)
@@ -421,7 +429,11 @@ def auth_panel_init():
     form.td(skin_label)
     form.td(skin_select)
     form.tr()
-    form.td(login_button, colspan=2)
+    form.td(fullscreen_label)
+    form.td(fullscreen_checkbox)
+    form.tr()
+    form.td(login_button)
+    form.td(exit_button)
 
 
 def message_input_focus():
@@ -430,6 +442,14 @@ def message_input_focus():
 
 def message_input_blur():
     client.input = True
+
+
+def exit_button_click():
+    main_form.terminate()
+
+
+def fullscreen_checkbox_click():
+    main_form.set_fullscreen(len(fullscreen_checkbox_g.value) == 0)  # todo: походу тут магия...
 
 
 if __name__ == "__main__":
@@ -451,6 +471,10 @@ if __name__ == "__main__":
     addr_input = gui.Input(width=140, height=20)
     login_input = gui.Input(width=140, height=20)
     password_input = gui.Password(width=140, height=20)
+
+    fullscreen_checkbox_g = gui.Group()
+    fullscreen_checkbox = gui.Checkbox(fullscreen_checkbox_g, value=1)
+    fullscreen_checkbox.connect(gui.CLICK, fullscreen_checkbox_click)
     skin_select = gui.Select(width=152)
 
     auth_panel_init()

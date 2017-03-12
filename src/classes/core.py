@@ -18,7 +18,7 @@ class Core(object):
         :param game_speed: int
         """
         # настроечки...
-        self.limit_framerate = True
+        self.limit_framerate = False
         self.max_framerate = 60
         self.full_screen = False
 
@@ -49,6 +49,14 @@ class Core(object):
         self.set_background()
 
         self.update()
+
+    def set_fullscreen(self, b: bool):
+        if b:
+            self.full_screen = pygame.FULLSCREEN
+            self.surface = self.display.set_mode(self.surface.get_size(), self.full_screen)
+        else:
+            self.full_screen = None
+            self.surface = self.display.set_mode(self.surface.get_size())
 
     def add_object(self, form_object: BasicObject):
         """!
