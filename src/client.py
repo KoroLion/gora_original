@@ -313,6 +313,9 @@ def connect():
     if len(client.login) < 3:
         info_label.set_text('Your login is too short!')
         return False
+    if len(password_input.value) == 0:
+        info_label.set_text('Please, specify the password!')
+        return False
     if not client.skin:
         info_label.set_text('You have not selected a skin!')
         return False
@@ -447,7 +450,7 @@ if __name__ == "__main__":
     info_label = gui.Label('')
     addr_input = gui.Input(width=140, height=20)
     login_input = gui.Input(width=140, height=20)
-    password_input = gui.Input(width=140, height=20)
+    password_input = gui.Password(width=140, height=20)
     skin_select = gui.Select(width=152)
 
     auth_panel_init()
