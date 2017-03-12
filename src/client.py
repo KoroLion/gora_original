@@ -208,7 +208,7 @@ class UdpClientProtocol(asyncio.DatagramProtocol):
         print('Successfully connected to {}:{}!'.format(addr[0], addr[1]))
 
         self.transport = transport
-        data = json.dumps([CONNECT, client.login, client.skin])
+        data = json.dumps([CONNECT, client.token, client.skin])
         self.transport.sendto(data.encode())
 
     def datagram_received(self, data, addr):

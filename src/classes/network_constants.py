@@ -23,19 +23,20 @@ C_GO_TOP_UP = 203
 C_GO_BOTTOM_UP = 204
 C_FIRE_UP = 205
 
-# клиент -> сервер
+
 # служебные команды
 CONNECT = 5
 GET_DATA = 6
 DISCONNECT = 7
 ANGLE = 8
 MESSAGE = 12
-PING = 14
-# сервер -> клиент
+
 DATA = 9
 ID = 10
 KICK = 11
 MESSAGES = 13
+PING = 14
+AUTH = 15
 
 # скины (внешний вид игрока)
 SKIN_BLUE = 30

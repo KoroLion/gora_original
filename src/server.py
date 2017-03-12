@@ -2,6 +2,8 @@ import asyncio
 from threading import Thread
 from time import time, sleep
 
+import jwt
+
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -11,6 +13,8 @@ from classes.helper_types import Point
 from classes.network_constants import *
 
 IP = '0.0.0.0'
+
+JWT_KEY = '@aslkdfnsadfkladjh0g^r4t5ri23nj45big09v1n243'
 
 
 class Server(object):
@@ -140,9 +144,19 @@ class UdpServerProtocol(asyncio.DatagramProtocol):
         # подключение, отключение и передача данных
         if command == CONNECT:
             pid = server.get_new_pid()
-            print('{} connected ({}:{})!'.format(data[1], addr[0], addr[1]))
+
+            try:
+                token_data = jwt.decode(data[1], JWT_KEY, algorithms=['HS256'])
+                print(token_data)
+                login = token_data['username']
+            except jwt.exceptions.DecodeError:
+                print('#ERROR: Invalid user token - kicking!')
+                server.kick_addr(addr)
+                return False
+
+            print('{} connected ({}:{})!'.format(login, addr[0], addr[1]))
             new_player = {addr: PlayerInfo(pid, Point(100, 100), Point(0, 0),
-                                            login=data[1],
+                                            login=login,
                                             skin=data[2],
                                             angle=0)
                           }
