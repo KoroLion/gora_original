@@ -9,6 +9,8 @@ import asyncio
 from threading import Thread
 from time import sleep, time
 
+import requests
+
 import configparser
 
 try:
@@ -75,6 +77,7 @@ class Client(object):
         self.protocol = None
         self.loop = asyncio.get_event_loop()
         self.input = True
+        self.token = None
 
         self.login = ''
         self.skin = None
@@ -114,6 +117,14 @@ class Client(object):
             return True
 
         return False
+
+    def auth(self, login: str, password: str) -> bool:
+        r_res = requests.post('http://{}:8000/auth_api/'.format(self.ip), data={'login': login, 'password': password})
+        if r_res.status_code == 403:
+            return False
+        else:
+            self.token = r_res.text
+            return True
 
     def connected(self):
         if self.transport:
@@ -304,6 +315,10 @@ def connect():
         return False
     if not client.skin:
         info_label.set_text('You have not selected a skin!')
+        return False
+
+    if not client.auth(login_input.value, password_input.value):
+        info_label.set_text('Неправильный логин или пароль!')
         return False
 
     # пытаемся подключиться
