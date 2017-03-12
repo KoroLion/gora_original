@@ -147,12 +147,14 @@ class UdpServerProtocol(asyncio.DatagramProtocol):
 
             try:
                 token_data = jwt.decode(data[1], JWT_KEY, algorithms=['HS256'])
-                print(token_data)
+                if token_data['expires'] < time():
+                    print('#ERROR: Expired access token was received!')
+                    return None
+
                 login = token_data['username']
             except jwt.exceptions.DecodeError:
-                print('#ERROR: Invalid user token - kicking!')
-                server.kick_addr(addr)
-                return False
+                print('#ERROR: Invalid access token was received!')
+                return None
 
             print('{} connected ({}:{})!'.format(login, addr[0], addr[1]))
             new_player = {addr: PlayerInfo(pid, Point(100, 100), Point(0, 0),

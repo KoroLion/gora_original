@@ -87,7 +87,7 @@ def auth_api(request):
 
     user = authenticate(username=login, password=password)
     if user:
-        return HttpResponse(jwt.encode({'username': user.username, 'expires': round(time() + 60)},
+        return HttpResponse(jwt.encode({'username': user.username, 'expires': round(time() + 30)},
                                        JWT_KEY,
                                        algorithm='HS256'))
     else:
