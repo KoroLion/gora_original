@@ -1,0 +1,16 @@
+<div class="title">Главная: </div>
+{% if mes|length > 0 %}
+    <div class="message {{type}}">{{ mes }}</div>
+{% endif %}
+
+{{ user.username }}
+<!-- <div class="question">
+    Назовите мне ключ, чтобы пройти квест и получить награду. Чтобы получить ключ - пройдите тесты!
+</div>
+<form class="form-inline" action="" method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        <input type="text" name="final_key" placeholder="Общий ответ" class="form-control">
+        <input type="submit" name="get_code" value="Получить код" class="btn btn-success">
+    </div>
+</form> -->

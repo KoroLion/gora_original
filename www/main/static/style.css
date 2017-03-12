@@ -1,0 +1,66 @@
+input[type="submit"].lbut {
+    min-width: 150px;
+    font-size: 1.2em;
+    -webkit-appearance: none;
+    backgoround-color: inherit;
+    border: 1px solid green;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 5px;
+    transition: 0.2s ease all;
+}
+input[type="submit"].lbut:hover {
+    background-color: green;
+    color: white;
+}
+
+div.title {
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.3em;
+    color: #222;
+}
+
+div.message {
+    width: 80%;
+    padding: 5px;
+    margin-bottom: 15px;
+    border: 1px solid green;
+    box-shadow: 0 0 1px green;
+    border-radius: 5px;
+}
+div.message.error {
+    border-color: red;
+    box-shadow: 0 0 1px red;
+}
+
+header {
+    padding-top: 10px;
+}
+div.main {
+    min-height: 1000px;
+}
+div.test {
+    width: 50%;
+    text-align: center;
+    padding: 5px;
+    margin-bottom: 5px;
+    border: 1px solid #437E9F;
+    border-radius: 5px;
+}
+div.test:hover {
+    background-color: #437E9F;
+}
+
+img {
+    margin: 0;
+}
+
+footer {
+    bottom: 0;
+    padding: 5px;
+    background-color: #4B4B4E;
+    color: white;
+    text-align: center;
+}

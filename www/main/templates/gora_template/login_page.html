@@ -1,0 +1,13 @@
+{% extends "gora_template/gora_template.html" %}
+
+{% block form %}
+    {% if not user.is_authenticated %}
+        <form action="" method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Войти</button>
+        </form>
+    {% else %}
+        {{ user.username }}, вы уже авторизованы!
+    {% endif %}
+{% endblock %}

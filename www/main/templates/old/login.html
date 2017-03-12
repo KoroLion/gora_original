@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Авторизация</title>
+</head>
+<body>
+    {% if not user.is_authenticated %}
+        <form action="" method="POST">
+            {% csrf_token %}
+            <!-- as_p для того, чтобы каждый элемент формы был с новой строки -->
+            {{ form.as_p }}
+            <button type="submit">Войти</button>
+        </form>
+    {% endif %}
+</body>
+</html>

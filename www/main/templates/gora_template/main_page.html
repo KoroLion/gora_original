@@ -1,0 +1,6 @@
+{% if user.is_authenticated %}
+    {{ user.username }}, вы авторизованы! <br />
+    <a href="/logout">Выйти</a>
+{% else %}
+    Доступ закрыт: вы не авторизованы!
+{% endif %}

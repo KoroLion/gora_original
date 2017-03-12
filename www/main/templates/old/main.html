@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ head_title }}</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'artemiy_template.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}" />
+    <!--<link rel="stylesheet" type="text/css" href="{% static 'bootstrap.min.css' %}" />-->
+    <link rel="shortcut icon" href="{% static 'favicon.png' %}" type="image/png">
+</head>
+<body>
+    <header>
+        <h1><a href="/main"><img src="{% static 'mshp-logo.png' %}" alt="MSHP" align="left" ></a>{{ head_title }}</h1>
+        <nav>
+            {% block menu %}
+            {% endblock %}
+        </nav>
+    </header>
+    <div class="main">
+        {{ content }}
+    </div>
+    <footer>
+        {{ footer }}
+    </footer>
+</body>
+</html>

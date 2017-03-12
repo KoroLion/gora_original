@@ -1,0 +1,27 @@
+<div class = "subject">
+    <strong>Тест "{{cur_test.name}}" </strong>({{amount}} вопросов)
+</div>
+
+<table>
+<form method="POST" action="{% url 'main:test_answer' cur_test.id %}">
+    {% csrf_token %}
+    {% for cur_task in cur_tasks %}
+        <tr><th>{{ forloop.counter }}. <label><strong>{{cur_task.question}}</strong></label></th></tr>
+        <tr><td>
+            {% if cur_task.without_answers == False %}
+                {% with forloop.counter as task_number %}
+                    <ul>
+                    {% for answer in cur_task.answers %}
+                        <li><input type="radio" name="answer_{{ task_number }}" value="{{ forloop.counter }}"><span>{{answer}}</span></li>
+                    {% endfor %}
+                    </ul>
+                {% endwith %}
+            {% else %}
+                <input type="text" name="answer_{{ forloop.counter }}" placeholder="Ваш ответ...">
+                <br />
+            {% endif %}
+        </td></tr>
+    {% endfor %}
+    <tr><td style="text-align: center;"><input type="submit" name="answer_test" value="Проверить" class="lbut"></td></tr>
+</form>
+</table>

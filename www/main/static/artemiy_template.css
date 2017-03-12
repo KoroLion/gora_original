@@ -1,0 +1,181 @@
+html, body, div,
+h1, h2, h3, nav, li, ul{
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.main table {
+	font-family:Arial, Helvetica, sans-serif;
+	color:#666;
+	font-size:12px;
+	text-shadow: 1px 1px 0px #fff;
+	background:#eaebec;
+	margin:20px;
+	border:#ccc 1px solid;
+    margin: auto;
+    width: 70%;
+	border-radius:3px;
+    margin-top: 25px;
+	box-shadow: 0 1px 2px #d1d1d1;
+}
+
+.main ul{
+    list-style: none;
+    font-size: 15px;
+}
+
+.main li{
+    margin-top: 5px;
+}
+
+.main table th {
+	padding:16px 20px 17px 20px;
+	border-top:1px solid #fafafa;
+	border-bottom:1px solid #e0e0e0;
+	border-left: 0px;
+	background: #ededed;
+	text-align: center;
+	color: #555;
+	font-size: 17px;
+}
+.main table tr {
+	padding-left:20px;
+}
+
+.main table td {
+	padding:18px;
+	border-top: 1px solid #ffffff;
+	border-bottom:1px solid #e0e0e0;
+	border-left: 1px solid #e0e0e0;
+	text-align: left;
+	background: #fafafa;
+}
+.main table tr.even td {
+	background: #f6f6f6;
+}
+.main table tr:hover td {
+	background: #f2f2f2;
+}
+
+
+.main {
+  position: relative;
+  margin: 25px auto 0 auto;
+  padding: 20px 20px 20px;
+  width: 75%;
+  background: white;
+  border-radius: 3px;
+  margin-bottom:15px;
+}
+
+.main H2 {
+  margin-left: 40px;
+  font-size: large;
+}
+
+.main:before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: -9px;
+  bottom: -8px;
+  left: -9px;
+  z-index: -1;
+  background: rgba(30, 30, 100, 0.15);
+  border-radius: 4px;
+}
+
+
+.subject {
+  position: relative;
+  text-align: center;
+  margin: 0 auto;
+  padding: 5px 20px 5px;
+  font-size: 1.3em;
+  background: white;
+  border-radius: 3px;
+}
+
+.subject H2 {
+  margin-left: 40px;
+  font-size: x-large;
+}
+
+.subject:before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  bottom: -8px;
+  left: -6px;
+  z-index: -1;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+}
+
+BODY {
+    background-color: rgb(220, 224, 222);
+}
+
+H1 {
+    padding-bottom: 17px;
+    padding-left: 10px;
+    text-align:  center;
+    color: white;
+    font-size: xx-large;
+}
+
+img{
+    margin-top: -10px;
+}
+
+body {
+  font: 15px 'Tahoma';
+}
+
+header {
+  padding-top: 15px;
+  background: rgb(75, 75, 78);
+}
+
+nav {
+  height: 36px;
+  background: rgb(70, 75, 76);
+  border-top: 1px solid rgba(63, 178, 241, 0.5);
+  border-bottom: 2px;
+}
+nav ul {
+  float: left;
+  list-style: none;
+  width: 100%;
+}
+nav li {
+  float: left;
+  text-align: center;
+  width: 33%;
+
+}
+nav a {
+  display: block;
+  padding: 0 20px;
+  line-height: 36px;
+  color: rgb(200,200,200);
+  border-left: 1px solid rgb(60, 65, 66);
+  border-right: 1px solid rgb(60, 65, 66);
+}
+
+nav li.active a, nav li.active a:hover, nav a:active {
+  padding: 0 21px;
+  background: rgb(55,55,55);
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 3px;
+  color: rgb(72, 136, 194);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+nav li.active{
+ width: 34%;
+}

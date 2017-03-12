@@ -1,0 +1,9 @@
+{% extends "gora_template/gora_template.html" %}
+
+{% block form %}
+    <form action="" method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Принять</button>
+    </form>
+{% endblock %}

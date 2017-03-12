@@ -1,0 +1,9 @@
+<div class="title">Тесты: </div>
+{% if mes|length > 0 %}
+    <div class="message {{type}}">{{ mes }}</div>
+{% endif %}
+{% for test in test_list %}
+    <a href="{% url 'main:test' test.id %}">
+        <div class="test">Тест "{{test.name}}"</div>
+    </a>
+{% endfor %}
