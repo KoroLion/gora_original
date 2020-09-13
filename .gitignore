@@ -1,0 +1,7 @@
+*.pyc
+*/.idea/*
+/.idea/*
+*/.DS_Store
+/.DS_Store
+/docs/
+/src/config.conf
